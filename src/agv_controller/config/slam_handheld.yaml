@@ -1,0 +1,24 @@
+slam_toolbox:
+  ros__parameters:
+
+    use_sim_time: false
+
+    # Frames
+    map_frame: map
+    odom_frame: odom
+    base_frame: base_link
+    scan_topic: /scan
+
+    mode: mapping
+
+    resolution: 0.05
+    max_laser_range: 8.0
+
+    minimum_time_interval: 0.5
+    transform_publish_period: 0.05
+
+    publish_tf: true
+    publish_map: true
+
+    use_scan_matching: true
+    use_odom: true 

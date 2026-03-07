@@ -1,0 +1,29 @@
+[1.859s] Invoking command in '/home/dinhsieu/turtlebot3_pi_ws/build/hls_lfcd_lds_driver': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/dinhsieu/turtlebot3_pi_ws/install/agv_controller:/opt/ros/humble /usr/bin/cmake --build /home/dinhsieu/turtlebot3_pi_ws/build/hls_lfcd_lds_driver -- -j4 -l4
+[3.249s] [100%] Built target hlds_laser_publisher
+[3.300s] Invoked command in '/home/dinhsieu/turtlebot3_pi_ws/build/hls_lfcd_lds_driver' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/dinhsieu/turtlebot3_pi_ws/install/agv_controller:/opt/ros/humble /usr/bin/cmake --build /home/dinhsieu/turtlebot3_pi_ws/build/hls_lfcd_lds_driver -- -j4 -l4
+[3.351s] Invoking command in '/home/dinhsieu/turtlebot3_pi_ws/build/hls_lfcd_lds_driver': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/dinhsieu/turtlebot3_pi_ws/install/agv_controller:/opt/ros/humble /usr/bin/cmake --install /home/dinhsieu/turtlebot3_pi_ws/build/hls_lfcd_lds_driver
+[3.398s] -- Install configuration: ""
+[3.403s] -- Up-to-date: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/launch
+[3.404s] -- Up-to-date: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/launch/view_hlds_laser.launch.py
+[3.404s] -- Up-to-date: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/launch/hlds_laser.launch.py
+[3.407s] -- Up-to-date: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/rviz
+[3.411s] -- Up-to-date: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/rviz/hlds_laser.rviz
+[3.413s] -- Up-to-date: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/lib/hls_lfcd_lds_driver/hlds_laser_publisher
+[3.415s] -- Up-to-date: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/ament_index/resource_index/package_run_dependencies/hls_lfcd_lds_driver
+[3.415s] -- Up-to-date: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/ament_index/resource_index/parent_prefix_path/hls_lfcd_lds_driver
+[3.422s] -- Up-to-date: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/environment/ament_prefix_path.sh
+[3.422s] -- Up-to-date: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/environment/ament_prefix_path.dsv
+[3.423s] -- Up-to-date: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/environment/path.sh
+[3.424s] -- Up-to-date: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/environment/path.dsv
+[3.425s] -- Up-to-date: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/local_setup.bash
+[3.425s] -- Up-to-date: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/local_setup.sh
+[3.426s] -- Up-to-date: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/local_setup.zsh
+[3.427s] -- Up-to-date: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/local_setup.dsv
+[3.427s] -- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/package.dsv
+[3.428s] -- Up-to-date: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/ament_index/resource_index/packages/hls_lfcd_lds_driver
+[3.429s] -- Up-to-date: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/cmake/ament_cmake_export_dependencies-extras.cmake
+[3.441s] -- Up-to-date: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/cmake/ament_cmake_export_include_directories-extras.cmake
+[3.442s] -- Up-to-date: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/cmake/hls_lfcd_lds_driverConfig.cmake
+[3.442s] -- Up-to-date: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/cmake/hls_lfcd_lds_driverConfig-version.cmake
+[3.443s] -- Up-to-date: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/package.xml
+[3.461s] Invoked command in '/home/dinhsieu/turtlebot3_pi_ws/build/hls_lfcd_lds_driver' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/dinhsieu/turtlebot3_pi_ws/install/agv_controller:/opt/ros/humble /usr/bin/cmake --install /home/dinhsieu/turtlebot3_pi_ws/build/hls_lfcd_lds_driver

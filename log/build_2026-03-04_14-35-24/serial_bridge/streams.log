@@ -1,0 +1,4 @@
+[1.196s] Invoking command in '/home/dinhsieu/turtlebot3_pi_ws/build/serial_bridge': /usr/bin/cmake /home/dinhsieu/turtlebot3_pi_ws/src/serial_bridge -DCATKIN_INSTALL_INTO_PREFIX_ROOT=0 -DCMAKE_INSTALL_PREFIX=/home/dinhsieu/turtlebot3_pi_ws/install/serial_bridge
+[1.228s] [0mCMake Error: The source directory "/home/dinhsieu/turtlebot3_pi_ws/src/serial_bridge" does not appear to contain CMakeLists.txt.
+[1.229s] Specify --help for usage, or press the help button on the CMake GUI.[0m
+[1.238s] Invoked command in '/home/dinhsieu/turtlebot3_pi_ws/build/serial_bridge' returned '1': /usr/bin/cmake /home/dinhsieu/turtlebot3_pi_ws/src/serial_bridge -DCATKIN_INSTALL_INTO_PREFIX_ROOT=0 -DCMAKE_INSTALL_PREFIX=/home/dinhsieu/turtlebot3_pi_ws/install/serial_bridge

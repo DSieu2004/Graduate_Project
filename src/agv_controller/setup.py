@@ -25,7 +25,7 @@ setup(
     license='MIT',
     entry_points={
         'console_scripts': [
-            'robot_controller = agv_controller.diff_drive_controller:main',
+            'diff_drive_controller = agv_controller.diff_drive_controller:main',
         ],
     },
 )

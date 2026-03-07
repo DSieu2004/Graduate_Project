@@ -1,0 +1,28 @@
+[ 50%] [32mBuilding CXX object CMakeFiles/hlds_laser_publisher.dir/src/hlds_laser_publisher.cpp.o[0m
+[100%] [32m[1mLinking CXX executable hlds_laser_publisher[0m
+[100%] Built target hlds_laser_publisher
+-- Install configuration: ""
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/launch
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/launch/view_hlds_laser.launch.py
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/launch/hlds_laser.launch.py
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/rviz
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/rviz/hlds_laser.rviz
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/lib/hls_lfcd_lds_driver/hlds_laser_publisher
+-- Set runtime path of "/home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/lib/hls_lfcd_lds_driver/hlds_laser_publisher" to ""
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/ament_index/resource_index/package_run_dependencies/hls_lfcd_lds_driver
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/ament_index/resource_index/parent_prefix_path/hls_lfcd_lds_driver
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/environment/ament_prefix_path.sh
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/environment/ament_prefix_path.dsv
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/environment/path.sh
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/environment/path.dsv
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/local_setup.bash
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/local_setup.sh
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/local_setup.zsh
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/local_setup.dsv
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/package.dsv
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/ament_index/resource_index/packages/hls_lfcd_lds_driver
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/cmake/ament_cmake_export_dependencies-extras.cmake
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/cmake/ament_cmake_export_include_directories-extras.cmake
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/cmake/hls_lfcd_lds_driverConfig.cmake
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/cmake/hls_lfcd_lds_driverConfig-version.cmake
+-- Installing: /home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver/share/hls_lfcd_lds_driver/package.xml

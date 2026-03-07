@@ -1,0 +1,2 @@
+Invoking command in '/home/dinhsieu/turtlebot3_pi_ws/build/serial_bridge': /usr/bin/cmake /home/dinhsieu/turtlebot3_pi_ws/src/serial_bridge -DCATKIN_INSTALL_INTO_PREFIX_ROOT=0 -DCMAKE_INSTALL_PREFIX=/home/dinhsieu/turtlebot3_pi_ws/install/serial_bridge
+Invoked command in '/home/dinhsieu/turtlebot3_pi_ws/build/serial_bridge' returned '1': /usr/bin/cmake /home/dinhsieu/turtlebot3_pi_ws/src/serial_bridge -DCATKIN_INSTALL_INTO_PREFIX_ROOT=0 -DCMAKE_INSTALL_PREFIX=/home/dinhsieu/turtlebot3_pi_ws/install/serial_bridge
