@@ -1,0 +1,41 @@
+running develop
+Removing /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv-controller.egg-link (link to .)
+running egg_info
+writing ../../build/agv_controller/agv_controller.egg-info/PKG-INFO
+writing dependency_links to ../../build/agv_controller/agv_controller.egg-info/dependency_links.txt
+writing entry points to ../../build/agv_controller/agv_controller.egg-info/entry_points.txt
+writing requirements to ../../build/agv_controller/agv_controller.egg-info/requires.txt
+writing top-level names to ../../build/agv_controller/agv_controller.egg-info/top_level.txt
+reading manifest file '../../build/agv_controller/agv_controller.egg-info/SOURCES.txt'
+writing manifest file '../../build/agv_controller/agv_controller.egg-info/SOURCES.txt'
+running build
+running build_py
+copying agv_controller/linear_test.py -> /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/build/lib/agv_controller
+copying agv_controller/diff_drive_controller.py -> /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/build/lib/agv_controller
+copying agv_controller/square_test.py -> /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/build/lib/agv_controller
+running install
+running install_lib
+creating /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv_controller
+copying /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/build/lib/agv_controller/linear_test.py -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv_controller
+copying /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/build/lib/agv_controller/__init__.py -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv_controller
+copying /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/build/lib/agv_controller/diff_drive_controller.py -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv_controller
+copying /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/build/lib/agv_controller/square_test.py -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv_controller
+copying /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/build/lib/agv_controller/draw_and_follow.py -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv_controller
+byte-compiling /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv_controller/linear_test.py to linear_test.cpython-310.pyc
+byte-compiling /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv_controller/__init__.py to __init__.cpython-310.pyc
+byte-compiling /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv_controller/diff_drive_controller.py to diff_drive_controller.cpython-310.pyc
+byte-compiling /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv_controller/square_test.py to square_test.cpython-310.pyc
+byte-compiling /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv_controller/draw_and_follow.py to draw_and_follow.cpython-310.pyc
+running install_data
+copying resource/agv_controller -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/share/ament_index/resource_index/packages
+copying package.xml -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/share/agv_controller
+copying launch/handheld_slam.launch.py -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/share/agv_controller/launch
+copying launch/nav2_custom.launch.py -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/share/agv_controller/launch
+copying config/ekf.yaml -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/share/agv_controller/config
+copying config/slam_handheld.yaml -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/share/agv_controller/config
+copying config/my_nav2_params.yaml -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/share/agv_controller/config
+running install_egg_info
+Copying ../../build/agv_controller/agv_controller.egg-info to /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv_controller-0.0.1-py3.10.egg-info
+running install_scripts
+Installing diff_drive_controller script to /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/agv_controller
+writing list of installed files to '/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/install.log'

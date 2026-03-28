@@ -1,0 +1,10 @@
+[0.000000] (-) TimerEvent: {}
+[0.001545] (-) JobUnselected: {'identifier': 'hls_lfcd_lds_driver'}
+[0.002182] (agv_controller) JobQueued: {'identifier': 'agv_controller', 'dependencies': OrderedDict()}
+[0.002657] (agv_controller) JobStarted: {'identifier': 'agv_controller'}
+[0.099030] (-) TimerEvent: {}
+[0.199693] (-) TimerEvent: {}
+[0.300965] (-) TimerEvent: {}
+[0.401787] (-) TimerEvent: {}
+[0.442589] (agv_controller) JobEnded: {'identifier': 'agv_controller', 'rc': 0}
+[0.446585] (-) EventReactorShutdown: {}

@@ -1,29 +1,23 @@
 import rclpy
 from rclpy.node import Node
-
 from std_msgs.msg import String
-from geometry_msgs.msg import Twist, TransformStamped
+from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
-
-from tf2_ros import TransformBroadcaster
+from sensor_msgs.msg import Imu
 from rclpy.qos import QoSProfile, ReliabilityPolicy
 
-import json
 import math
 import serial
 import threading
 import time
 import numpy as np
 
-
 # ------------------ UTILS ------------------
 def quaternion_from_euler(roll, pitch, yaw):
-    qx = np.sin(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) - np.cos(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
-    qy = np.cos(roll/2) * np.sin(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.cos(pitch/2) * np.sin(yaw/2)
-    qz = np.cos(roll/2) * np.cos(pitch/2) * np.sin(yaw/2) - np.sin(roll/2) * np.sin(pitch/2) * np.cos(yaw/2)
-    qw = np.cos(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
-    return [qx, qy, qz, qw]
-
+    """Chuyển đổi Euler (Radian) sang Quaternion chuẩn ROS"""
+    qz = np.sin(yaw / 2)
+    qw = np.cos(yaw / 2)
+    return [0.0, 0.0, qz, qw]
 
 # ------------------ NODE ------------------
 class DiffDriveController(Node):
@@ -32,271 +26,200 @@ class DiffDriveController(Node):
         super().__init__('diff_drive_controller')
 
         # ---------- QoS ----------
-        qos_cmd_vel = QoSProfile(depth=10)
-        qos_cmd_vel.reliability = ReliabilityPolicy.BEST_EFFORT
-
         qos_reliable = QoSProfile(depth=10)
         qos_reliable.reliability = ReliabilityPolicy.RELIABLE
 
         # ---------- SUBSCRIBERS ----------
-        self.sub_cmd_vel = self.create_subscription(
-            Twist,
-            '/cmd_vel',
-            self.vel_callback,
-            qos_cmd_vel
-        )
-
-        self.sub_opentcs = self.create_subscription(
-            String,
-            '/opentcs/vehicle_command',
-            self.opentcs_callback,
-            qos_reliable
-        )
+        # Lắng nghe lệnh vận tốc từ Nav2 hoặc Teleop
+        self.sub_cmd_vel = self.create_subscription(Twist, '/cmd_vel', self.vel_callback, 10)
+        self.sub_opentcs = self.create_subscription(String, '/opentcs/vehicle_command', self.opentcs_callback, qos_reliable)
+        
+        # Lắng nghe lệnh nạp PID từ Web GUI
+        self.sub_pid = self.create_subscription(String, '/pid_command', self.pid_callback, 10)
 
         # ---------- PUBLISHERS ----------
-        self.uart_pub = self.create_publisher(String, 'uart_cmd', 10)
+        # Phát dữ liệu thô cho EKF xử lý
         self.odom_pub = self.create_publisher(Odometry, 'odom', 10)
-        self.tf_broadcaster = TransformBroadcaster(self)
+        self.imu_pub = self.create_publisher(Imu, 'imu/data', 10)
 
         # ---------- ROBOT CONFIG ----------
-        self.WHEEL_BASE = 0.30
-        self.WHEEL_RADIUS = 0.0325
-        # Không cần TICKS_PER_REV nữa vì ta dùng vận tốc trực tiếp
+        self.WHEEL_BASE = 0.30 # Khoảng cách 2 bánh (m) - Lưu ý đo lại thực tế xem có chính xác 30cm không nhé!
 
-        # ---------- ODOM STATE ----------
+        # ---------- STATE ----------
         self.x = 0.0
         self.y = 0.0
-        self.theta = 0.0
-
+        self.theta_imu = 0.0
         self.v = 0.0
         self.w = 0.0
 
         self.last_time = self.get_clock().now()
         self.lock = threading.Lock()
 
-        # ---------- CONTROL ----------
-        self.manual_mode = False
-        self.last_manual_time = 0.0
-        self.target_x = None
-        self.target_y = None
-
-        # ---------- UART ----------
+        # ---------- UART SETUP ----------
         self.declare_parameter('serial_port', '/dev/serial0')
         port = self.get_parameter('serial_port').value
 
         try:
-            self.ser = serial.Serial(port, 115200, timeout=0.05)
-            self.get_logger().info(f"UART connected: {port}")
+            self.ser = serial.Serial(port, 115200, timeout=0.1)
+            self.get_logger().info(f"🚀 UART Connected to STM32 at {port}")
         except Exception as e:
-            self.get_logger().error(f"UART error: {e}")
+            self.get_logger().error(f"❌ UART Error: {e}")
             self.ser = None
 
+        # Chạy luồng đọc UART riêng biệt để không gây trễ hệ thống
         threading.Thread(target=self.read_uart, daemon=True).start()
 
         # ---------- TIMER ----------
-        self.create_timer(0.05, self.control_loop)  # 20 Hz
-
-        self.get_logger().info("DiffDriveController READY (Velocity-based Odom)")
+        # Phát topic /odom định kỳ 20Hz
+        self.create_timer(0.05, self.control_loop) 
 
     # ------------------ CALLBACKS ------------------
     def vel_callback(self, msg: Twist):
-        self.manual_mode = True
-        self.last_manual_time = time.time()
-        self.target_x = None
-
+        """Nhận v, w từ ROS và gửi lệnh xuống STM32"""
         v = msg.linear.x
         w = msg.angular.z
-
         v_l = v - w * self.WHEEL_BASE / 2.0
         v_r = v + w * self.WHEEL_BASE / 2.0
-
         self.send_cmd(v_r, v_l)
 
     def opentcs_callback(self, msg: String):
-        if self.manual_mode:
-            return
+        # Giữ chỗ cho logic điều khiển từ OpenTCS nếu cần
+        pass
 
-        try:
-            data = json.loads(msg.data)
-            state = data.get('state')
+    def pid_callback(self, msg: String):
+        """Nhận Kp, Ki từ Web và gửi xuống STM32"""
+        if self.ser and self.ser.is_open:
+            try:
+                # Đảm bảo có ký tự \n ở cuối để STM32 dùng readline() hoặc đọc hết chuỗi
+                cmd = msg.data
+                if not cmd.endswith('\n'):
+                    cmd += '\n'
+                    
+                self.ser.write(cmd.encode())
+                self.get_logger().info(f"⚙️ Nạp PID mới xuống STM32: {cmd.strip()}")
+            except Exception as e:
+                self.get_logger().error(f"❌ Lỗi gửi PID: {e}")
 
-            if state == "START":
-                with self.lock:
-                    self.x = data['x']
-                    self.y = data['y']
-                    self.theta = 0.0
-                self.target_x = None
-
-            elif state == "PROCESSING":
-                self.target_x = data['x']
-                self.target_y = data['y']
-
-            elif state == "END":
-                self.target_x = None
-                self.send_cmd(0.0, 0.0)
-
-        except Exception as e:
-            self.get_logger().warn(f"OpenTCS parse error: {e}")
-
-    # ------------------ MAIN LOOP ------------------
-    def control_loop(self):
-        self.publish_tf()
-
-        if self.manual_mode:
-            if time.time() - self.last_manual_time > 1.0:
-                self.send_cmd(0.0, 0.0)
-                self.manual_mode = False
-            return
-
-        if self.target_x is None:
-            return
-
-        with self.lock:
-            dx = self.target_x - self.x
-            dy = self.target_y - self.y
-            theta = self.theta
-
-        dist = math.hypot(dx, dy)
-        angle = math.atan2(dy, dx)
-        err = self.normalize_angle(angle - theta)
-
-        v = max(-0.4, min(0.4, 0.5 * dist))
-        w = max(-1.0, min(1.0, 1.2 * err))
-
-        if dist < 0.05:
-            v = 0.0
-            w = 0.0
-
-        v_l = v - w * self.WHEEL_BASE / 2.0
-        v_r = v + w * self.WHEEL_BASE / 2.0
-
-        self.send_cmd(v_r, v_l)
-
-    # ------------------ UART ------------------
+    # ------------------ UART COMMUNICATION ------------------
     def send_cmd(self, v_r, v_l):
+        """Gửi chuỗi CMD xuống STM32"""
         cmd = f"CMD,{v_r:.3f},{v_l:.3f}\n"
-        if self.ser:
+        if self.ser and self.ser.is_open:
             try:
                 self.ser.write(cmd.encode())
             except Exception as e:
-                self.get_logger().error(f"UART write error: {e}")
-
-        self.uart_pub.publish(String(data=cmd.strip()))
+                self.get_logger().error(f"UART Write Error: {e}")
 
     def read_uart(self):
-        buffer = ""
+        """Luồng đọc dữ liệu phản hồi (Feedback) từ STM32"""
         while rclpy.ok():
-            if self.ser and self.ser.in_waiting:
-                c = self.ser.read().decode(errors='ignore')
-                if c == '\n':
-                    self.parse_feedback(buffer.strip())
-                    buffer = ""
+            if self.ser and self.ser.is_open:
+                if self.ser.in_waiting > 0:
+                    try:
+                        # Đọc nguyên dòng để đảm bảo tính toàn vẹn dữ liệu
+                        line = self.ser.readline().decode('utf-8', errors='ignore').strip()
+                        if line.startswith("FB,"):
+                            self.parse_feedback(line)
+                    except Exception as e:
+                        self.get_logger().warn(f"UART Read Error: {e}")
                 else:
-                    buffer += c
+                    time.sleep(0.002) # Giảm tải CPU khi không có dữ liệu
             else:
-                time.sleep(0.001)
+                time.sleep(0.5)
 
     def parse_feedback(self, line):
-        # STM32 gửi: FB,vel_R,vel_L
-        if not line.startswith("FB"):
-            return
+        """Phân tích chuỗi FB,vR,vL,theta và cập nhật tọa độ"""
         try:
             parts = line.split(',')
-            if len(parts) >= 3:
+            if len(parts) >= 4:
                 v_r = float(parts[1])
                 v_l = float(parts[2])
-                self.update_odometry(v_r, v_l)
+                theta_now = float(parts[3]) # Góc Yaw từ BNO055 (Radian)
+
+                with self.lock:
+                    now = self.get_clock().now()
+                    dt = (now - self.last_time).nanoseconds / 1e9
+                    self.last_time = now
+
+                    # Kiểm tra dt hợp lệ để tránh nhảy tọa độ khi lag
+                    if 0.0 < dt < 1.0:
+                        theta_old = self.theta_imu     # Lưu lại góc cũ
+                        self.theta_imu = theta_now     # Cập nhật góc mới từ IMU
+                        
+                        self.v = (v_r + v_l) / 2.0
+                        self.w = (v_r - v_l) / self.WHEEL_BASE 
+
+                        # =========================================================
+                        # ODOMETRY FUSION (Nâng cấp Runge-Kutta bậc 2)
+                        # =========================================================
+                        ds = self.v * dt
+                        
+                        # Tính góc trung bình của quỹ đạo cong để nội suy chuẩn hơn
+                        theta_mid = theta_old + (self.w * dt) / 2.0
+                        
+                        # Cập nhật tọa độ X, Y dựa trên góc trung bình
+                        self.x += ds * math.cos(theta_mid)
+                        self.y += ds * math.sin(theta_mid)
+                        
+                        # Phát IMU ngay lập tức để đồng bộ thời gian với Encoder
+                        self.publish_imu(theta_now)
         except Exception as e:
             pass
 
-    # ------------------ ODOM (VELOCITY BASED) ------------------
-    def update_odometry(self, v_r, v_l):
-
-        with self.lock:
-            now = self.get_clock().now()
-            dt = (now - self.last_time).nanoseconds / 1e9
-            self.last_time = now
-
-            if dt <= 0:
-                return
-
-            # Tính vận tốc tịnh tiến (v) và vận tốc góc (w) của tâm robot
-            self.v = (v_r + v_l) / 2.0
-            self.w = (v_r - v_l) / self.WHEEL_BASE
-
-            # Tính quãng đường di chuyển trong khoảng thời gian dt (s = v * t)
-            ds = self.v * dt
-            dtheta = self.w * dt
-
-            # Cập nhật tọa độ x, y, theta trên bản đồ
-            self.x += ds * math.cos(self.theta + dtheta/2.0)
-            self.y += ds * math.sin(self.theta + dtheta/2.0)
-            self.theta = self.normalize_angle(self.theta + dtheta)
-
-    # ------------------ TF + ODOM ------------------
-    def publish_tf(self):
-
-        with self.lock:
-            x = self.x
-            y = self.y
-            theta = self.theta
-            v = self.v
-            w = self.w
-
-        now = self.get_clock().now().to_msg()
-
-        t = TransformStamped()
-        t.header.stamp = now
-        t.header.frame_id = "odom"
-        t.child_frame_id = "base_link"
-        t.transform.translation.x = x
-        t.transform.translation.y = y
-        t.transform.translation.z = 0.0
+    # ------------------ PUBLISHERS ------------------
+    def publish_imu(self, theta):
+        """Phát topic /imu/data cho EKF"""
+        msg = Imu()
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.header.frame_id = "imu_link"
 
         q = quaternion_from_euler(0, 0, theta)
-        t.transform.rotation.x = q[0]
-        t.transform.rotation.y = q[1]
-        t.transform.rotation.z = q[2]
-        t.transform.rotation.w = q[3]
+        msg.orientation.z = q[2]
+        msg.orientation.w = q[3]
 
-        self.tf_broadcaster.sendTransform(t)
+        # Ma trận sai số cực thấp (Tin tưởng IMU tuyệt đối về hướng)
+        msg.orientation_covariance[8] = 0.001 
+        self.imu_pub.publish(msg)
 
+    def control_loop(self):
+        """Phát topic /odom định kỳ để RViz và Nav2 sử dụng"""
+        now = self.get_clock().now().to_msg()
         odom = Odometry()
         odom.header.stamp = now
         odom.header.frame_id = "odom"
         odom.child_frame_id = "base_link"
 
-        odom.pose.pose.position.x = x
-        odom.pose.pose.position.y = y
-        odom.pose.pose.position.z = 0.0
+        with self.lock:
+            odom.pose.pose.position.x = self.x
+            odom.pose.pose.position.y = self.y
+            q = quaternion_from_euler(0, 0, self.theta_imu)
+            odom.pose.pose.orientation.z = q[2]
+            odom.pose.pose.orientation.w = q[3]
+            
+            odom.twist.twist.linear.x = self.v
+            odom.twist.twist.angular.z = self.w
 
-        odom.pose.pose.orientation.x = q[0]
-        odom.pose.pose.orientation.y = q[1]
-        odom.pose.pose.orientation.z = q[2]
-        odom.pose.pose.orientation.w = q[3]
-
-        odom.twist.twist.linear.x = v
-        odom.twist.twist.angular.z = w
+            # MA TRẬN HIỆP PHƯƠNG SAI (Giúp EKF hoạt động chính xác)
+            odom.pose.covariance[0] = 0.01  # Sai số x
+            odom.pose.covariance[7] = 0.01  # Sai số y
+            odom.pose.covariance[35] = 0.01 # Sai số yaw
+            
+            odom.twist.covariance[0] = 0.01 # Sai số vx
+            odom.twist.covariance[35] = 0.01 # Sai số wz
 
         self.odom_pub.publish(odom)
-
-    @staticmethod
-    def normalize_angle(a):
-        while a > math.pi:
-            a -= 2 * math.pi
-        while a < -math.pi:
-            a += 2 * math.pi
-        return a
-
 
 # ------------------ MAIN ------------------
 def main(args=None):
     rclpy.init(args=args)
     node = DiffDriveController()
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
-
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
 
 if __name__ == '__main__':
     main()

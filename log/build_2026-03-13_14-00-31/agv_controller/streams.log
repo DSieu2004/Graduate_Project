@@ -1,0 +1,37 @@
+[3.020s] Invoking command in '/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller': PYTHONPATH=/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --uninstall --editable --build-directory /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/build
+[4.136s] running develop
+[4.848s] Removing /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv-controller.egg-link (link to .)
+[4.976s] Invoked command in '/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller' returned '0': PYTHONPATH=/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --uninstall --editable --build-directory /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/build
+[4.986s] Invoking command in '/home/dinhsieu/turtlebot3_pi_ws/src/agv_controller': PYTHONPATH=/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/agv_controller build --build-base /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/build install --record /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/install.log --single-version-externally-managed install_data --force
+[6.018s] running egg_info
+[6.021s] writing ../../build/agv_controller/agv_controller.egg-info/PKG-INFO
+[6.022s] writing dependency_links to ../../build/agv_controller/agv_controller.egg-info/dependency_links.txt
+[6.023s] writing entry points to ../../build/agv_controller/agv_controller.egg-info/entry_points.txt
+[6.024s] writing requirements to ../../build/agv_controller/agv_controller.egg-info/requires.txt
+[6.024s] writing top-level names to ../../build/agv_controller/agv_controller.egg-info/top_level.txt
+[6.032s] reading manifest file '../../build/agv_controller/agv_controller.egg-info/SOURCES.txt'
+[6.037s] writing manifest file '../../build/agv_controller/agv_controller.egg-info/SOURCES.txt'
+[6.038s] running build
+[6.038s] running build_py
+[6.040s] running install
+[6.041s] running install_lib
+[6.044s] creating /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv_controller
+[6.045s] copying /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/build/lib/agv_controller/__init__.py -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv_controller
+[6.045s] copying /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/build/lib/agv_controller/diff_drive_controller.py -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv_controller
+[6.046s] copying /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/build/lib/agv_controller/draw_and_follow.py -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv_controller
+[6.049s] byte-compiling /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv_controller/__init__.py to __init__.cpython-310.pyc
+[6.051s] byte-compiling /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv_controller/diff_drive_controller.py to diff_drive_controller.cpython-310.pyc
+[6.058s] byte-compiling /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv_controller/draw_and_follow.py to draw_and_follow.cpython-310.pyc
+[6.062s] running install_data
+[6.062s] copying resource/agv_controller -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/share/ament_index/resource_index/packages
+[6.063s] copying package.xml -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/share/agv_controller
+[6.064s] copying launch/handheld_slam.launch.py -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/share/agv_controller/launch
+[6.064s] copying launch/nav2_custom.launch.py -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/share/agv_controller/launch
+[6.065s] copying config/slam_handheld.yaml -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/share/agv_controller/config
+[6.066s] copying config/my_nav2_params.yaml -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/share/agv_controller/config
+[6.067s] running install_egg_info
+[6.076s] Copying ../../build/agv_controller/agv_controller.egg-info to /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv_controller-0.0.1-py3.10.egg-info
+[6.087s] running install_scripts
+[6.174s] Installing diff_drive_controller script to /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/agv_controller
+[6.176s] writing list of installed files to '/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/install.log'
+[6.295s] Invoked command in '/home/dinhsieu/turtlebot3_pi_ws/src/agv_controller' returned '0': PYTHONPATH=/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/agv_controller build --build-base /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/build install --record /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/install.log --single-version-externally-managed install_data --force

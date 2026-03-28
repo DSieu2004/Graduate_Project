@@ -1,0 +1,22 @@
+[8.141s] Invoking command in '/home/dinhsieu/turtlebot3_pi_ws/src/agv_controller': PYTHONPATH=/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/agv_controller build --build-base /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/build install --record /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/install.log --single-version-externally-managed install_data
+[10.553s] running egg_info
+[10.559s] writing ../../build/agv_controller/agv_controller.egg-info/PKG-INFO
+[10.567s] writing dependency_links to ../../build/agv_controller/agv_controller.egg-info/dependency_links.txt
+[10.573s] writing entry points to ../../build/agv_controller/agv_controller.egg-info/entry_points.txt
+[10.579s] writing requirements to ../../build/agv_controller/agv_controller.egg-info/requires.txt
+[10.583s] writing top-level names to ../../build/agv_controller/agv_controller.egg-info/top_level.txt
+[10.600s] reading manifest file '../../build/agv_controller/agv_controller.egg-info/SOURCES.txt'
+[10.614s] writing manifest file '../../build/agv_controller/agv_controller.egg-info/SOURCES.txt'
+[10.619s] running build
+[10.624s] running build_py
+[10.634s] running install
+[10.642s] running install_lib
+[10.658s] running install_data
+[10.663s] copying config/my_nav2_params.yaml -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/share/agv_controller/config
+[10.670s] running install_egg_info
+[10.689s] removing '/home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv_controller-0.0.1-py3.10.egg-info' (and everything under it)
+[10.701s] Copying ../../build/agv_controller/agv_controller.egg-info to /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv_controller-0.0.1-py3.10.egg-info
+[10.747s] running install_scripts
+[10.949s] Installing diff_drive_controller script to /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/agv_controller
+[10.955s] writing list of installed files to '/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/install.log'
+[11.247s] Invoked command in '/home/dinhsieu/turtlebot3_pi_ws/src/agv_controller' returned '0': PYTHONPATH=/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/agv_controller build --build-base /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/build install --record /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/install.log --single-version-externally-managed install_data

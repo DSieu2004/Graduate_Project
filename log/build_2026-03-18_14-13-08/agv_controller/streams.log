@@ -1,0 +1,17 @@
+[3.080s] Invoking command in '/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller': PYTHONPATH=/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/build --no-deps symlink_data
+[4.224s] running develop
+[4.961s] running egg_info
+[4.962s] writing agv_controller.egg-info/PKG-INFO
+[4.963s] writing dependency_links to agv_controller.egg-info/dependency_links.txt
+[4.964s] writing entry points to agv_controller.egg-info/entry_points.txt
+[4.965s] writing requirements to agv_controller.egg-info/requires.txt
+[4.965s] writing top-level names to agv_controller.egg-info/top_level.txt
+[4.974s] reading manifest file 'agv_controller.egg-info/SOURCES.txt'
+[4.978s] writing manifest file 'agv_controller.egg-info/SOURCES.txt'
+[4.984s] running build_ext
+[4.985s] Creating /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv-controller.egg-link (link to .)
+[4.989s] Installing diff_drive_controller script to /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/agv_controller
+[4.990s] 
+[4.991s] Installed /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller
+[4.991s] running symlink_data
+[5.123s] Invoked command in '/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller' returned '0': PYTHONPATH=/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/build --no-deps symlink_data

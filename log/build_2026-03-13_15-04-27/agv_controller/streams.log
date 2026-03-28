@@ -1,0 +1,23 @@
+[3.043s] Invoking command in '/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller': PYTHONPATH=/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/build --no-deps symlink_data --force
+[4.613s] running develop
+[5.915s] running egg_info
+[5.917s] writing agv_controller.egg-info/PKG-INFO
+[5.920s] writing dependency_links to agv_controller.egg-info/dependency_links.txt
+[5.922s] writing entry points to agv_controller.egg-info/entry_points.txt
+[5.924s] writing requirements to agv_controller.egg-info/requires.txt
+[5.926s] writing top-level names to agv_controller.egg-info/top_level.txt
+[5.933s] reading manifest file 'agv_controller.egg-info/SOURCES.txt'
+[5.938s] writing manifest file 'agv_controller.egg-info/SOURCES.txt'
+[5.948s] running build_ext
+[5.949s] Creating /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv-controller.egg-link (link to .)
+[5.954s] Installing diff_drive_controller script to /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/agv_controller
+[5.957s] 
+[5.957s] Installed /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller
+[5.968s] running symlink_data
+[5.971s] symbolically linking /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/resource/agv_controller -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/share/ament_index/resource_index/packages
+[5.973s] symbolically linking /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/package.xml -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/share/agv_controller
+[5.975s] symbolically linking /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/launch/handheld_slam.launch.py -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/share/agv_controller/launch
+[5.990s] symbolically linking /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/launch/nav2_custom.launch.py -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/share/agv_controller/launch
+[5.992s] symbolically linking /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/config/slam_handheld.yaml -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/share/agv_controller/config
+[5.994s] symbolically linking /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/config/my_nav2_params.yaml -> /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/share/agv_controller/config
+[6.230s] Invoked command in '/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller' returned '0': PYTHONPATH=/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/build --no-deps symlink_data --force

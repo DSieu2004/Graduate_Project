@@ -1,0 +1,98 @@
+[0.000000] (-) TimerEvent: {}
+[0.001106] (-) JobUnselected: {'identifier': 'hls_lfcd_lds_driver'}
+[0.001807] (agv_controller) JobQueued: {'identifier': 'agv_controller', 'dependencies': OrderedDict()}
+[0.002043] (agv_controller) JobStarted: {'identifier': 'agv_controller'}
+[0.097006] (-) TimerEvent: {}
+[0.198096] (-) TimerEvent: {}
+[0.300540] (-) TimerEvent: {}
+[0.401489] (-) TimerEvent: {}
+[0.502755] (-) TimerEvent: {}
+[0.603774] (-) TimerEvent: {}
+[0.704697] (-) TimerEvent: {}
+[0.805451] (-) TimerEvent: {}
+[0.906301] (-) TimerEvent: {}
+[1.007083] (-) TimerEvent: {}
+[1.110272] (-) TimerEvent: {}
+[1.211845] (-) TimerEvent: {}
+[1.313423] (-) TimerEvent: {}
+[1.415751] (-) TimerEvent: {}
+[1.518025] (-) TimerEvent: {}
+[1.618776] (-) TimerEvent: {}
+[1.719577] (-) TimerEvent: {}
+[1.820424] (-) TimerEvent: {}
+[1.921304] (-) TimerEvent: {}
+[2.021958] (-) TimerEvent: {}
+[2.122698] (-) TimerEvent: {}
+[2.223423] (-) TimerEvent: {}
+[2.324146] (-) TimerEvent: {}
+[2.425276] (-) TimerEvent: {}
+[2.526871] (-) TimerEvent: {}
+[2.629378] (-) TimerEvent: {}
+[2.731977] (-) TimerEvent: {}
+[2.832810] (-) TimerEvent: {}
+[2.934051] (-) TimerEvent: {}
+[3.036757] (-) TimerEvent: {}
+[3.139135] (-) TimerEvent: {}
+[3.248669] (-) TimerEvent: {}
+[3.350011] (-) TimerEvent: {}
+[3.452207] (-) TimerEvent: {}
+[3.554718] (-) TimerEvent: {}
+[3.659536] (-) TimerEvent: {}
+[3.760726] (-) TimerEvent: {}
+[3.863052] (-) TimerEvent: {}
+[3.963943] (-) TimerEvent: {}
+[4.064720] (-) TimerEvent: {}
+[4.165615] (-) TimerEvent: {}
+[4.266384] (-) TimerEvent: {}
+[4.367201] (-) TimerEvent: {}
+[4.468671] (-) TimerEvent: {}
+[4.569481] (-) TimerEvent: {}
+[4.670435] (-) TimerEvent: {}
+[4.771611] (-) TimerEvent: {}
+[4.774743] (agv_controller) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/build', '--no-deps', 'symlink_data'], 'cwd': '/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller', 'env': {'LESSOPEN': '| /usr/bin/lesspipe %s', 'USER': 'dinhsieu', 'SSH_CLIENT': '192.168.1.168 33358 22', 'LC_TIME': 'vi_VN.UTF-8', 'XDG_SESSION_TYPE': 'tty', 'GIT_ASKPASS': '/home/dinhsieu/.vscode-server/cli/servers/Stable-bdd88df003631aaa0bcbe057cb0a940b80a476fa/server/extensions/git/dist/askpass.sh', 'SHLVL': '2', 'LD_LIBRARY_PATH': '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib', 'BROWSER': '/home/dinhsieu/.vscode-server/cli/servers/Stable-bdd88df003631aaa0bcbe057cb0a940b80a476fa/server/bin/helpers/browser.sh', 'MOTD_SHOWN': 'pam', 'HOME': '/home/dinhsieu', 'TERM_PROGRAM_VERSION': '1.109.0', 'VSCODE_IPC_HOOK_CLI': '/run/user/1000/vscode-ipc-9a75e42a-7277-4dd1-9f1a-7331bd0d355b.sock', 'ROS_PYTHON_VERSION': '3', 'VSCODE_GIT_ASKPASS_MAIN': '/home/dinhsieu/.vscode-server/cli/servers/Stable-bdd88df003631aaa0bcbe057cb0a940b80a476fa/server/extensions/git/dist/askpass-main.js', 'LC_MONETARY': 'vi_VN.UTF-8', 'VSCODE_GIT_ASKPASS_NODE': '/home/dinhsieu/.vscode-server/cli/servers/Stable-bdd88df003631aaa0bcbe057cb0a940b80a476fa/server/node', 'ROS_IP': '192.168.10.2', 'SSL_CERT_FILE': '/usr/lib/ssl/certs/ca-certificates.crt', 'VSCODE_PYTHON_AUTOACTIVATE_GUARD': '1', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1000/bus', 'COLORTERM': 'truecolor', 'COLCON_PREFIX_PATH': '/home/dinhsieu/turtlebot3_pi_ws/install', 'ROS_DISTRO': 'humble', 'LOGNAME': 'dinhsieu', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'XDG_SESSION_CLASS': 'user', 'TERM': 'xterm-256color', 'XDG_SESSION_ID': '3', 'ROS_LOCALHOST_ONLY': '0', 'PATH': '/home/dinhsieu/.vscode-server/cli/servers/Stable-bdd88df003631aaa0bcbe057cb0a940b80a476fa/server/bin/remote-cli:/home/dinhsieu/.local/bin:/opt/ros/humble/bin:/home/dinhsieu/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin', 'LC_ADDRESS': 'vi_VN.UTF-8', 'XDG_RUNTIME_DIR': '/run/user/1000', 'SSL_CERT_DIR': '/usr/lib/ssl/certs', 'LANG': 'en_US.UTF-8', 'LC_TELEPHONE': 'vi_VN.UTF-8', 'RMW_IMPLEMENTATION': 'rmw_cyclonedds_cpp', 'LS_COLORS': 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:', 'VSCODE_GIT_IPC_HANDLE': '/run/user/1000/vscode-git-dd5b2ae7fb.sock', 'TERM_PROGRAM': 'vscode', 'ROS_DOMAIN_ID': '30', 'AMENT_PREFIX_PATH': '/home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver:/home/dinhsieu/turtlebot3_pi_ws/install/agv_controller:/opt/ros/humble', 'SHELL': '/bin/bash', 'LC_NAME': 'vi_VN.UTF-8', 'LESSCLOSE': '/usr/bin/lesspipe %s %s', 'LC_MEASUREMENT': 'vi_VN.UTF-8', 'LC_IDENTIFICATION': 'vi_VN.UTF-8', 'ROS_AUTOMATIC_DISCOVERY_RANGE': 'SUBNET', 'VSCODE_GIT_ASKPASS_EXTRA_ARGS': '', 'PWD': '/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller', 'TURTLEBOT3_MODEL': 'waffle_pi', 'LC_ALL': 'en_US.UTF-8', 'SSH_CONNECTION': '192.168.1.168 33358 192.168.1.200 22', 'XDG_DATA_DIRS': '/usr/local/share:/usr/share:/var/lib/snapd/desktop', 'PYTHONPATH': '/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages:/home/dinhsieu/turtlebot3_pi_ws/build/agv_controller:/home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'LC_NUMERIC': 'vi_VN.UTF-8', 'LC_PAPER': 'vi_VN.UTF-8', 'COLCON': '1', 'CMAKE_PREFIX_PATH': '/home/dinhsieu/turtlebot3_pi_ws/install/hls_lfcd_lds_driver'}, 'shell': False}
+[4.871817] (-) TimerEvent: {}
+[4.973262] (-) TimerEvent: {}
+[5.074652] (-) TimerEvent: {}
+[5.176082] (-) TimerEvent: {}
+[5.277499] (-) TimerEvent: {}
+[5.380035] (-) TimerEvent: {}
+[5.481403] (-) TimerEvent: {}
+[5.582110] (-) TimerEvent: {}
+[5.682827] (-) TimerEvent: {}
+[5.783532] (-) TimerEvent: {}
+[5.884291] (-) TimerEvent: {}
+[5.985131] (-) TimerEvent: {}
+[6.087149] (-) TimerEvent: {}
+[6.192946] (-) TimerEvent: {}
+[6.294571] (-) TimerEvent: {}
+[6.385839] (agv_controller) StdoutLine: {'line': b'running develop\n'}
+[6.394751] (-) TimerEvent: {}
+[6.495491] (-) TimerEvent: {}
+[6.596236] (-) TimerEvent: {}
+[6.697598] (-) TimerEvent: {}
+[6.798554] (-) TimerEvent: {}
+[6.899681] (-) TimerEvent: {}
+[7.000407] (-) TimerEvent: {}
+[7.101684] (-) TimerEvent: {}
+[7.203036] (-) TimerEvent: {}
+[7.304510] (-) TimerEvent: {}
+[7.393022] (agv_controller) StdoutLine: {'line': b'running egg_info\n'}
+[7.393907] (agv_controller) StdoutLine: {'line': b'writing agv_controller.egg-info/PKG-INFO\n'}
+[7.398116] (agv_controller) StdoutLine: {'line': b'writing dependency_links to agv_controller.egg-info/dependency_links.txt\n'}
+[7.398853] (agv_controller) StdoutLine: {'line': b'writing entry points to agv_controller.egg-info/entry_points.txt\n'}
+[7.401377] (agv_controller) StdoutLine: {'line': b'writing requirements to agv_controller.egg-info/requires.txt\n'}
+[7.401940] (agv_controller) StdoutLine: {'line': b'writing top-level names to agv_controller.egg-info/top_level.txt\n'}
+[7.404686] (-) TimerEvent: {}
+[7.407408] (agv_controller) StdoutLine: {'line': b"reading manifest file 'agv_controller.egg-info/SOURCES.txt'\n"}
+[7.413221] (agv_controller) StdoutLine: {'line': b"writing manifest file 'agv_controller.egg-info/SOURCES.txt'\n"}
+[7.419944] (agv_controller) StdoutLine: {'line': b'running build_ext\n'}
+[7.422559] (agv_controller) StdoutLine: {'line': b'Creating /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv-controller.egg-link (link to .)\n'}
+[7.425871] (agv_controller) StdoutLine: {'line': b'Installing diff_drive_controller script to /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/agv_controller\n'}
+[7.428363] (agv_controller) StdoutLine: {'line': b'\n'}
+[7.429036] (agv_controller) StdoutLine: {'line': b'Installed /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller\n'}
+[7.431589] (agv_controller) StdoutLine: {'line': b'running symlink_data\n'}
+[7.505065] (-) TimerEvent: {}
+[7.588182] (agv_controller) CommandEnded: {'returncode': 0}
+[7.605328] (-) TimerEvent: {}
+[7.688928] (agv_controller) JobEnded: {'identifier': 'agv_controller', 'rc': 0}
+[7.692584] (-) EventReactorShutdown: {}

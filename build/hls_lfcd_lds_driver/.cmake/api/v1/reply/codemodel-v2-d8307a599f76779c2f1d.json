@@ -1,0 +1,79 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-4a7652e9878147f776c3.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"name" : "",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "hls_lfcd_lds_driver",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "hlds_laser_publisher::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-hlds_laser_publisher-a49ad552ecbdb3f073b9.json",
+					"name" : "hlds_laser_publisher",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "hls_lfcd_lds_driver_uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-hls_lfcd_lds_driver_uninstall-8e242cbefd9df3700b82.json",
+					"name" : "hls_lfcd_lds_driver_uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uninstall-f38635e2866cf718a558.json",
+					"name" : "uninstall",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/dinhsieu/turtlebot3_pi_ws/build/hls_lfcd_lds_driver",
+		"source" : "/home/dinhsieu/turtlebot3_pi_ws/src/hls_lfcd_lds_driver"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

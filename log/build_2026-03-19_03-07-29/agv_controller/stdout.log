@@ -1,0 +1,15 @@
+running develop
+running egg_info
+writing agv_controller.egg-info/PKG-INFO
+writing dependency_links to agv_controller.egg-info/dependency_links.txt
+writing entry points to agv_controller.egg-info/entry_points.txt
+writing requirements to agv_controller.egg-info/requires.txt
+writing top-level names to agv_controller.egg-info/top_level.txt
+reading manifest file 'agv_controller.egg-info/SOURCES.txt'
+writing manifest file 'agv_controller.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/python3.10/site-packages/agv-controller.egg-link (link to .)
+Installing diff_drive_controller script to /home/dinhsieu/turtlebot3_pi_ws/install/agv_controller/lib/agv_controller
+
+Installed /home/dinhsieu/turtlebot3_pi_ws/build/agv_controller
+running symlink_data

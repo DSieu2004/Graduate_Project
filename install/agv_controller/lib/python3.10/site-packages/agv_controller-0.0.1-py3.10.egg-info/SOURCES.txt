@@ -10,6 +10,11 @@ setup.py
 ../../build/agv_controller/agv_controller.egg-info/zip-safe
 agv_controller/__init__.py
 agv_controller/diff_drive_controller.py
+agv_controller/draw_and_follow.py
+agv_controller/linear_test.py
+agv_controller/qr_scanner_node.py
+agv_controller/square_test.py
+config/ekf.yaml
 config/my_nav2_params.yaml
 config/slam_handheld.yaml
 launch/handheld_slam.launch.py

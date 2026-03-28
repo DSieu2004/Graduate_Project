@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>AMR Control Center</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/eventemitter2@6/lib/eventemitter2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script src="https://code.createjs.com/1.0.0/easeljs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ros2d@0/build/ros2d.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #1a1a2e; --panel: #16213e; --blue: #0f3460; --light-blue: #3498db; 
+            --green: #27ae60; --orange: #e67e22; --red: #e74c3c; --text: #ecf0f1;
+            --purple: #9b59b6; --dark-grey: #2c3e50; --pink: #e84393;
+        }
+        body { 
+            font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); 
+            margin: 0; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 20px;
+        }
+        
+        .main-container { display: flex; gap: 20px; max-width: 95vw; width: 100%; flex-wrap: wrap; justify-content: center; }
+        .panel { background: var(--panel); padding: 25px 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); flex: 1; min-width: 350px; max-width: 420px; display: flex; flex-direction: column; }
+        
+        h2 { text-align: center; color: var(--light-blue); border-bottom: 2px solid var(--blue); padding-bottom: 15px; margin-top: 0; font-size: 1.3em;}
+        .section-title { font-size: 0.85em; color: #aaa; margin: 20px 0 10px 0; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; border-left: 3px solid var(--light-blue); padding-left: 10px;}
+        button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; font-size: 0.95em; transition: 0.2s; color: white; background: var(--blue); }
+        button:hover { filter: brightness(1.2); }
+        
+        .btn-estop { background: #c0392b; color: white; font-size: 1.2em; border: 2px solid #ffcccc; box-shadow: 0 0 15px rgba(231, 76, 60, 0.6); text-transform: uppercase; padding: 15px; margin-bottom: 15px;}
+        .btn-estop:hover { background: #e74c3c; box-shadow: 0 0 25px rgba(231, 76, 60, 1);}
+        .btn-estop:active { transform: scale(0.95); }
+
+        .btn-home-set { background: var(--orange); } .btn-home-go { background: var(--green); } .btn-waypoint { background: var(--purple); } .btn-square { background: var(--pink); border: 2px dashed white; } .btn-pid { background: #f39c12; margin-top: 10px; }
+        
+        .imu-dashboard { display: flex; justify-content: space-between; background: var(--dark-grey); padding: 15px; border-radius: 8px; text-align: center; }
+        .imu-item { flex: 1; font-weight: bold; font-size: 0.9em; } .imu-value { font-size: 1.4em; font-family: monospace; color: var(--light-blue); display: block; margin-top: 5px; }
+        .pid-container { display: flex; gap: 10px; } .pid-container input { flex: 1; padding: 12px; border-radius: 6px; border: 1px solid var(--blue); font-size: 1em; text-align: center; font-weight: bold; background: var(--bg); color: white; width: 30%;}
+        
+        .test-pid-controls { display: flex; gap: 10px; margin-top: 10px; }
+        .test-speed-input { width: 80px; text-align: center; border-radius: 6px; border: 2px solid #10b981; background: var(--bg); color: white; font-weight: bold; font-size: 1.2em; }
+        .chart-wrapper { background: var(--bg); padding: 10px; border-radius: 8px; margin-top: 5px; border: 1px solid var(--dark-grey); height: 130px; position: relative;}
+        .chart-title { position: absolute; top: 5px; left: 15px; font-size: 0.75em; color: #aaa; font-weight: bold; }
+        
+        #nav-map { background: #cfd8dc; border-radius: 8px; overflow: hidden; display: flex; justify-content: center; align-items: center; border: 2px solid var(--dark-grey); }
+        #status-bar { margin-top: 25px; padding: 15px; background: rgba(0,0,0,0.3); text-align: center; border-radius: 8px; font-size: 0.95em; }
+
+        @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
+        .shake-active { animation: shake 0.4s; }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+
+    <div class="panel" id="control-panel">
+        <h2>🎮 ĐIỀU KHIỂN ROBOT</h2>
+
+        <button class="btn-estop" onclick="emergencyStop()">🛑 DỪNG KHẨN CẤP (AGV 1)</button>
+
+        <div class="section-title">1. KHỞI TẠO VỊ TRÍ (BẮT BUỘC)</div>
+        <button class="btn-home-set" onclick="setInitialPose()">📍 XÁC NHẬN VỊ TRÍ BẮT ĐẦU (HOME)</button>
+        
+        <div class="section-title">2. LỆNH ĐIỀU HƯỚNG TỰ ĐỘNG</div>
+        <button class="btn-home-go" onclick="sendGoal(HOME_X, HOME_Y, 0.0)">🔋 TỰ ĐỘNG VỀ TRẠM SẠC</button>
+        <button class="btn-waypoint" onclick="sendGoal(-0.546, -0.512, -1.57)">📦 CHẠY ĐẾN ĐIỂM A (Kệ 1)</button>
+        <button class="btn-waypoint" onclick="sendGoal(0.997, -0.417, 0.0)">📦 CHẠY ĐẾN ĐIỂM B (Kệ 2)</button>
+        <button class="btn-waypoint" onclick="sendGoal(1.010, 0.278, 1.57)">📦 CHẠY ĐẾN ĐIỂM C (Kệ 3)</button> 
+        <button class="btn-waypoint" onclick="sendGoal(-0.534, 0.278, 3.14159)">📦 CHẠY ĐẾN ĐIỂM D (Kệ 4)</button>
+        <button class="btn-square" onclick="startSquareTest()">🔄 CHẠY SQUARE TEST (4 VÒNG)</button>
+
+        <div class="section-title">3. ĐIỀU KHIỂN THỦ CÔNG (JOYSTICK 360)</div>
+        <div id="joystick-zone" style="position: relative; width: 100%; height: 180px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 2px dashed var(--dark-grey); margin-top: 10px; touch-action: none; display: flex; justify-content: center; align-items: center;">
+            <span style="color: #555; font-weight: bold; font-size: 0.9em; user-select: none;">KÉO ĐỂ DI CHUYỂN</span>
+        </div>
+
+        <div id="status-bar">Trạng thái: <span id="st-text" style="color:var(--red); font-weight:bold;">Đang chờ kết nối...</span></div>
+    </div>
+
+    <div class="panel" id="map-panel">
+        <h2>🗺️ BẢN ĐỒ & ĐỊNH VỊ</h2>
+        <div class="section-title">BẢN ĐỒ LƯỚI & ĐIỀU HƯỚNG</div>
+        <div id="nav-map"></div>
+        <div class="section-title" style="margin-top: 25px;">CHÚ THÍCH BẢN ĐỒ</div>
+        <div style="font-size: 0.9em; padding: 10px; background: var(--dark-grey); border-radius: 8px;">
+            <div style="display: flex; justify-content: space-around; margin-bottom: 5px;">
+                <div><span style="color: #000;">⬛</span> Vật cản</div>
+                <div><span style="color: #fff;">⬜</span> Mặt sàn</div>
+                <div><span style="color: #f1c40f;">📍</span> AGV 1 (Vàng)</div>
+            </div>
+            <div style="display: flex; justify-content: space-around;">
+                <div><span style="color: #ff0000;">🔴</span> LiDAR</div>
+                <div><span style="color: #9b59b6;">🎯</span> Điểm đến</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel" id="tuning-panel">
+        <h2>🛠️ GIÁM SÁT & TUNING</h2>
+
+        <div class="section-title">THÔNG SỐ IMU BNO055</div>
+        <div class="imu-dashboard">
+            <div class="imu-item">🧭 Góc Yaw<span id="yaw-deg" class="imu-value">0.00°</span></div>
+            <div class="imu-item">📐 Theta<span id="yaw-rad" class="imu-value" style="color:#e74c3c;">0.000</span></div>
+        </div>
+
+        <div class="section-title">CHỈNH ĐỊNH PID ĐỘNG CƠ</div>
+        <div class="pid-container">
+            <input type="number" id="input-kp" value="90.0" step="0.1" placeholder="Kp">
+            <input type="number" id="input-ki" value="20.0" step="0.1" placeholder="Ki">
+            <input type="number" id="input-kd" value="2.0" step="0.1" placeholder="Kd">
+        </div>
+        <button class="btn-pid" onclick="sendPID()">⚙️ NẠP THÔNG SỐ PID LÊN STM32</button>
+        
+        <div class="section-title">CHẠY THỬ ĐÁP ỨNG (m/s)</div>
+        <div class="test-pid-controls">
+            <input type="number" id="test-speed" class="test-speed-input" value="0.30" step="0.05">
+            <button style="background: #10b981; margin: 0; flex: 1;" onclick="startTestMove()">⬆️ CHẠY</button>
+            <button style="background: #e74c3c; margin: 0; flex: 1;" onclick="stopMove()">🛑 DỪNG</button>
+        </div>
+        
+        <div class="section-title">ĐỒ THỊ ĐÁP ỨNG TỪNG BÁNH</div>
+        <div class="chart-wrapper"><div class="chart-title">L-WHEEL</div><canvas id="chartLeft"></canvas></div>
+        <div class="chart-wrapper"><div class="chart-title">R-WHEEL</div><canvas id="chartRight"></canvas></div>
+    </div>
+
+</div>
+
+<script>
+    // ==========================================================
+    // CẤU HÌNH TỌA ĐỘ TRẠM SẠC
+    // ==========================================================
+    const HOME_X = -1.30484;
+    const HOME_Y = -0.120394;
+    const HOME_YAW = 0.159531;
+    const HOME_QZ = 0.079681; 
+    const HOME_QW = 0.99682;
+
+    var ip = "pi4.local";
+    var ros = new ROSLIB.Ros({ url : 'ws://' + ip + ':9090' });
+
+    ros.on('connection', () => { 
+        updateStatus("Đã kết nối Hệ thống Robot - Hãy Khởi tạo vị trí Bắt đầu!", "#27ae60"); 
+        initMap(); 
+        initJoystick();
+    });
+    
+    ros.on('error', () => { updateStatus("Lỗi kết nối đến Robot!", "#e74c3c"); });
+    ros.on('close', () => { updateStatus("Đã ngắt kết nối.", "#e74c3c"); });
+
+    function updateStatus(text, color) {
+        document.getElementById('st-text').innerText = text;
+        document.getElementById('st-text').style.color = color;
+    }
+
+    // --- LỆNH DI CHUYỂN TỰ ĐỘNG ---
+    function setInitialPose() {
+        var topic = new ROSLIB.Topic({ ros: ros, name: '/initialpose', messageType: 'geometry_msgs/PoseWithCovarianceStamped' });
+        var pose = new ROSLIB.Message({ header: { frame_id: 'map' }, pose: { pose: { position: { x: HOME_X, y: HOME_Y, z: 0.0 }, orientation: { x: 0.0, y: 0.0, z: HOME_QZ, w: HOME_QW } }, covariance: [0.05, 0, 0, 0, 0, 0,  0, 0.05, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0.05] } });
+        topic.publish(pose);
+        updateStatus(`📍 Đã nạp tọa độ HOME cho AGV 1. Sẵn sàng!`, "#e67e22");
+    }
+
+    var isNavigating = false; var isSquareTesting = false; var squareLoopCount = 0; var squarePointIndex = 0; const maxSquareLoops = 4;
+    const squareWaypoints = [
+        { x: -0.546, y: -0.512, yaw: -1.57, name: "A", color: "#9b59b6" }, { x: 0.997, y: -0.417, yaw: 0.0, name: "B", color: "#9b59b6" },
+        { x: 1.010, y: 0.278, yaw: 1.57, name: "C", color: "#9b59b6" }, { x: -0.534, y: 0.278, yaw: 3.14159, name: "D", color: "#9b59b6" }
+    ];
+
+    function sendGoal(targetX, targetY, targetYaw, isAutoLoop = false) {
+        var topic = new ROSLIB.Topic({ ros: ros, name: '/goal_pose', messageType: 'geometry_msgs/PoseStamped' });
+        var qz = Math.sin(targetYaw/2); var qw = Math.cos(targetYaw/2);
+        topic.publish(new ROSLIB.Message({ header: { frame_id: 'map' }, pose: { position: { x: targetX, y: targetY, z: 0.0 }, orientation: { x: 0.0, y: 0.0, z: qz, w: qw } } }));
+        isNavigating = true;
+        if (!isAutoLoop) { isSquareTesting = false; updateStatus(`🚀 AGV 1 đang tự động di chuyển đến mục tiêu...`, "#3498db"); }
+    }
+
+    function startSquareTest() {
+        if (isNavigating) { alert("⚠️ Robot đang bận di chuyển."); return; }
+        isSquareTesting = true; squareLoopCount = 0; squarePointIndex = 0;
+        updateStatus("🔄 Square Test (Vòng 1/4) - Đang tiến về Điểm A...", "#e84393");
+        sendGoal(squareWaypoints[0].x, squareWaypoints[0].y, squareWaypoints[0].yaw, true);
+    }
+
+    var moveInterval;
+    
+    // DỪNG KHẨN CẤP
+    function emergencyStop() {
+        isNavigating = false; isSquareTesting = false;
+        if (moveInterval) clearInterval(moveInterval);
+        
+        var cmdMaster = new ROSLIB.Topic({ ros: ros, name: '/cmd_vel', messageType: 'geometry_msgs/Twist' });
+        var zeroVel = new ROSLIB.Message({ linear: { x: 0, y: 0, z: 0 }, angular: { x: 0, y: 0, z: 0 } });
+        cmdMaster.publish(zeroVel); 
+
+        var cancelRequest = new ROSLIB.ServiceRequest({ goal_info: { goal_id: { uuid: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] }, stamp: { sec: 0, nanosec: 0 } } });
+        var cancelM = new ROSLIB.Service({ ros: ros, name: '/navigate_to_pose/_action/cancel_goal', serviceType: 'action_msgs/srv/CancelGoal' });
+        cancelM.callService(cancelRequest, function() {}); 
+        
+        if (pathShape) pathShape.graphics.clear();
+        updateStatus("🚨 E-STOP: ĐÃ HỦY LỆNH & KHÓA BÁNH ROBOT!", "#c0392b");
+        document.body.classList.add('shake-active'); setTimeout(() => { document.body.classList.remove('shake-active'); }, 400);
+    }
+
+    // Theo dõi Goal Status
+    var navStatusTopic = new ROSLIB.Topic({ ros: ros, name: '/navigate_to_pose/_action/status', messageType: 'action_msgs/msg/GoalStatusArray' });
+    navStatusTopic.subscribe(function(message) {
+        if (!isNavigating && !isSquareTesting) return;
+        if (!message.status_list || message.status_list.length === 0) return;
+        var latest_status = message.status_list[message.status_list.length - 1].status;
+        
+        if (latest_status === 4) { 
+            isNavigating = false; if(pathShape) pathShape.graphics.clear();
+            if (isSquareTesting) {
+                squarePointIndex++;
+                if (squarePointIndex >= squareWaypoints.length) { squarePointIndex = 0; squareLoopCount++; }
+                if (squareLoopCount < maxSquareLoops) {
+                    var nextPoint = squareWaypoints[squarePointIndex];
+                    updateStatus(`✅ Đã tới điểm. Vòng ${squareLoopCount + 1}/4 - Tiến về Điểm ${nextPoint.name}...`, "#e84393");
+                    setTimeout(() => { if (isSquareTesting) sendGoal(nextPoint.x, nextPoint.y, nextPoint.yaw, true); }, 1500);
+                } else {
+                    isSquareTesting = false; updateStatus("🎉 HOÀN THÀNH: Chạy xong 4 vòng Square Test!", "#27ae60");
+                }
+            } else { updateStatus("✅ Robot đã đến điểm đích thành công!", "#27ae60"); }
+        } else if (latest_status === 6) { 
+            isNavigating = false; isSquareTesting = false; if(pathShape) pathShape.graphics.clear();
+            updateStatus("❌ Lỗi: Bị kẹt hoặc không tìm thấy đường đi!", "#e74c3c"); 
+        }
+    });
+
+    // --- VIRTUAL JOYSTICK ---
+    var teleopInterval = null; var joyLinear = 0.0; var joyAngular = 0.0;
+    const MAX_LIN_SPEED = 0.20; const MAX_ANG_SPEED = 0.8; 
+
+    function initJoystick() {
+        var joystickZone = document.getElementById('joystick-zone');
+        joystickZone.innerHTML = '';
+        var joystickManager = nipplejs.create({ zone: joystickZone, mode: 'static', position: { left: '50%', top: '50%' }, color: '#3498db', size: 140 });
+
+        joystickManager.on('move', function (evt, data) {
+            isNavigating = false; isSquareTesting = false; if(pathShape) pathShape.graphics.clear();
+            var distance = data.distance; var angleRad = data.angle.radian;
+            var speedRatio = distance / 70.0; if(speedRatio > 1.0) speedRatio = 1.0;
+            joyLinear = Math.sin(angleRad) * speedRatio * MAX_LIN_SPEED;
+            joyAngular = Math.cos(angleRad) * speedRatio * MAX_ANG_SPEED;
+
+            if (!teleopInterval) {
+                updateStatus(`🎮 Đang lái AGV 1 bằng Joystick...`, "#8e44ad");
+                var cmdTopic = new ROSLIB.Topic({ ros: ros, name: '/cmd_vel', messageType: 'geometry_msgs/Twist' });
+                teleopInterval = setInterval(() => { cmdTopic.publish(new ROSLIB.Message({ linear: { x: joyLinear, y: 0, z: 0 }, angular: { x: 0, y: 0, z: joyAngular } })); }, 50); 
+            }
+        });
+
+        joystickManager.on('end', function (evt) {
+            if (teleopInterval) { clearInterval(teleopInterval); teleopInterval = null; }
+            var cmdTopic = new ROSLIB.Topic({ ros: ros, name: '/cmd_vel', messageType: 'geometry_msgs/Twist' });
+            cmdTopic.publish(new ROSLIB.Message({ linear: { x: 0, y: 0, z: 0 }, angular: { x: 0, y: 0, z: 0 } }));
+            updateStatus("⏹️ Robot đã dừng.", "#e74c3c");
+        });
+    }
+
+    function startTestMove() { 
+        var speed = parseFloat(document.getElementById('test-speed').value); 
+        if (!isNaN(speed)) {
+            isNavigating = false; isSquareTesting = false; if(pathShape) pathShape.graphics.clear();
+            if (moveInterval) clearInterval(moveInterval);
+            var cmdTopic = new ROSLIB.Topic({ ros: ros, name: '/cmd_vel', messageType: 'geometry_msgs/Twist' });
+            updateStatus(`🎮 Đang test chạy thẳng AGV 1...`, "#8e44ad");
+            moveInterval = setInterval(() => { cmdTopic.publish(new ROSLIB.Message({ linear: { x: speed, y: 0, z: 0 }, angular: { x: 0, y: 0, z: 0 } })); }, 100);
+        }
+    }
+    function stopMove() { 
+        if (moveInterval) { clearInterval(moveInterval); moveInterval = null; }
+        var cmdTopic = new ROSLIB.Topic({ ros: ros, name: '/cmd_vel', messageType: 'geometry_msgs/Twist' });
+        cmdTopic.publish(new ROSLIB.Message({ linear: { x: 0, y: 0, z: 0 }, angular: { x: 0, y: 0, z: 0 } })); 
+        updateStatus("⏹️ Robot đã dừng.", "#e74c3c");
+    }
+
+    var imuTopic = new ROSLIB.Topic({ ros: ros, name: '/imu/data', messageType: 'sensor_msgs/msg/Imu' });
+    imuTopic.subscribe(function(message) {
+        var yaw_rad = 2 * Math.atan2(message.orientation.z, message.orientation.w);
+        document.getElementById('yaw-deg').innerText = (yaw_rad * 180.0 / Math.PI).toFixed(2) + "°";
+        document.getElementById('yaw-rad').innerText = yaw_rad.toFixed(3);
+    });
+
+    var pidTopic = new ROSLIB.Topic({ ros: ros, name: '/pid_command', messageType: 'std_msgs/msg/String' });
+    function sendPID() {
+        var kp = document.getElementById('input-kp').value; var ki = document.getElementById('input-ki').value; var kd = document.getElementById('input-kd').value;
+        pidTopic.publish(new ROSLIB.Message({ data: "PID," + parseFloat(kp).toFixed(2) + "," + parseFloat(ki).toFixed(2) + "," + parseFloat(kd).toFixed(2) + "\n" }));
+        updateStatus("⚙️ Đã nạp PID: Kp=" + kp + ", Ki=" + ki + ", Kd=" + kd, "#f39c12");
+    }
+
+    const WHEEL_BASE = 0.30; const maxDataPoints = 40;
+    var tar_l = 0.0, tar_r = 0.0, act_l = 0.0, act_r = 0.0;
+    var globCmd = new ROSLIB.Topic({ ros: ros, name: '/cmd_vel', messageType: 'geometry_msgs/Twist' });
+    globCmd.subscribe(function(msg) { let v = msg.linear.x; let w = msg.angular.z; tar_l = v - (w * WHEEL_BASE / 2.0); tar_r = v + (w * WHEEL_BASE / 2.0); });
+    var odomTopic = new ROSLIB.Topic({ ros: ros, name: '/odom', messageType: 'nav_msgs/msg/Odometry' });
+    odomTopic.subscribe(function(msg) { let v = msg.twist.twist.linear.x; let w = msg.twist.twist.angular.z; act_l = v - (w * WHEEL_BASE / 2.0); act_r = v + (w * WHEEL_BASE / 2.0); });
+    const chartOptions = { animation: false, responsive: true, maintainAspectRatio: false, scales: { y: { min: -0.5, max: 0.5, grid: { color: '#34495e' }, ticks: { color: '#ecf0f1', stepSize: 0.2 } }, x: { display: false } }, plugins: { legend: { display: false } }, layout: { padding: { top: 20 } } };
+    var ctxLeft = document.getElementById('chartLeft').getContext('2d'); var chartLeft = new Chart(ctxLeft, { type: 'line', data: { labels: Array(maxDataPoints).fill(''), datasets: [ { borderColor: '#e74c3c', data: Array(maxDataPoints).fill(0), borderWidth: 2, pointRadius: 0, tension: 0.1 }, { borderColor: '#3498db', data: Array(maxDataPoints).fill(0), borderWidth: 2, pointRadius: 0, tension: 0.1 } ] }, options: chartOptions });
+    var ctxRight = document.getElementById('chartRight').getContext('2d'); var chartRight = new Chart(ctxRight, { type: 'line', data: { labels: Array(maxDataPoints).fill(''), datasets: [ { borderColor: '#e74c3c', data: Array(maxDataPoints).fill(0), borderWidth: 2, pointRadius: 0, tension: 0.1 }, { borderColor: '#3498db', data: Array(maxDataPoints).fill(0), borderWidth: 2, pointRadius: 0, tension: 0.1 } ] }, options: chartOptions });
+    setInterval(() => { chartLeft.data.datasets[0].data.shift(); chartLeft.data.datasets[0].data.push(tar_l); chartLeft.data.datasets[1].data.shift(); chartLeft.data.datasets[1].data.push(act_l); chartLeft.update(); chartRight.data.datasets[0].data.shift(); chartRight.data.datasets[0].data.push(tar_r); chartRight.data.datasets[1].data.shift(); chartRight.data.datasets[1].data.push(act_r); chartRight.update(); }, 100);
+
+    // ==========================================================
+    // --- VẼ BẢN ĐỒ VÀ ROBOT ---
+    // ==========================================================
+    var mapViewer, robotMarker1, laserScanShape, pathShape, waypointsShape;
+    var currentRobotX = null, currentRobotY = null, currentRobotYaw = null;
+
+    function createRobotShape(primaryColor) {
+        var marker = new createjs.Container();
+        var base = new createjs.Shape(); base.graphics.beginFill("#34495e").drawRoundRect(-0.14, -0.15, 0.28, 0.30, 0.02);
+        var wheelL = new createjs.Shape(); wheelL.graphics.beginFill("#000000").drawRect(-0.06, -0.18, 0.12, 0.04);
+        var wheelR = new createjs.Shape(); wheelR.graphics.beginFill("#000000").drawRect(-0.06, 0.14, 0.12, 0.04);
+        var lidar = new createjs.Shape(); lidar.graphics.beginFill("#111111").drawCircle(-0.04, 0, 0.045); lidar.graphics.beginFill(primaryColor).drawCircle(-0.04, 0, 0.015);
+        var dirArrow = new createjs.Shape(); dirArrow.graphics.beginFill(primaryColor).moveTo(0.04, -0.05).lineTo(0.16, 0).lineTo(0.04, 0.05).closePath();
+        marker.addChild(base, wheelL, wheelR, lidar, dirArrow);
+        marker.visible = false; 
+        return marker;
+    }
+
+    function initMap() {
+        if(mapViewer) return; 
+        mapViewer = new ROS2D.Viewer({ divID : 'nav-map', width : 360, height : 420 });
+        var gridClient = new ROS2D.OccupancyGridClient({ ros : ros, rootObject : mapViewer.scene, continuous: true });
+        gridClient.on('change', function() {
+            mapViewer.scaleToDimensions(gridClient.currentGrid.width, gridClient.currentGrid.height);
+            mapViewer.shift(gridClient.currentGrid.pose.position.x, gridClient.currentGrid.pose.position.y);
+        });
+
+        waypointsShape = new createjs.Container();
+        let allPoints = [...squareWaypoints, { x: HOME_X, y: HOME_Y, yaw: HOME_YAW, color: "#27ae60" }];
+        allPoints.forEach(wp => {
+            var marker = new createjs.Shape(); marker.graphics.beginFill(wp.color).drawCircle(0, 0, 0.08); marker.graphics.beginFill("#ffffff").drawCircle(0, 0, 0.03); marker.x = wp.x; marker.y = -wp.y; 
+            waypointsShape.addChild(marker);
+        });
+        mapViewer.scene.addChild(waypointsShape);
+
+        pathShape = new createjs.Shape(); mapViewer.scene.addChild(pathShape);
+        var planTopic = new ROSLIB.Topic({ ros: ros, name: '/plan', messageType: 'nav_msgs/msg/Path' });
+        planTopic.subscribe(function(message) {
+            pathShape.graphics.clear();
+            if (message.poses.length > 0) {
+                pathShape.graphics.setStrokeStyle(0.04, "round", "round").beginStroke("#27ae60");
+                pathShape.graphics.moveTo(message.poses[0].pose.position.x, -message.poses[0].pose.position.y);
+                for(var i = 1; i < message.poses.length; i++) pathShape.graphics.lineTo(message.poses[i].pose.position.x, -message.poses[i].pose.position.y);
+                pathShape.graphics.endStroke();
+            }
+        });
+
+        laserScanShape = new createjs.Shape(); mapViewer.scene.addChild(laserScanShape);
+
+        robotMarker1 = createRobotShape("#f1c40f"); // Vàng cho Master
+        mapViewer.scene.addChild(robotMarker1);
+
+        // Theo dõi tọa độ AGV 1
+        var poseTopic1 = new ROSLIB.Topic({ ros: ros, name: '/amcl_pose', messageType: 'geometry_msgs/PoseWithCovarianceStamped' });
+        poseTopic1.subscribe(function(message) {
+            currentRobotX = message.pose.pose.position.x; currentRobotY = message.pose.pose.position.y; 
+            currentRobotYaw = 2 * Math.atan2(message.pose.pose.orientation.z, message.pose.pose.orientation.w);
+            robotMarker1.visible = true; robotMarker1.x = currentRobotX; robotMarker1.y = -currentRobotY; robotMarker1.rotation = -currentRobotYaw * (180.0 / Math.PI); 
+        });
+
+        // Hiển thị tia Laser
+        var scanTopic = new ROSLIB.Topic({ ros: ros, name: '/scan', messageType: 'sensor_msgs/msg/LaserScan' });
+        scanTopic.subscribe(function(message) {
+            if (currentRobotX === null) return; 
+            laserScanShape.graphics.clear(); laserScanShape.graphics.beginFill("#e74c3c"); 
+            for (var i = 0; i < message.ranges.length; i++) {
+                var range = message.ranges[i];
+                if (range >= message.range_min && range <= message.range_max) {
+                    var global_angle = currentRobotYaw + message.angle_min + i * message.angle_increment;
+                    laserScanShape.graphics.drawRect(currentRobotX + range * Math.cos(global_angle) - 0.025, -(currentRobotY + range * Math.sin(global_angle)) - 0.025, 0.05, 0.05);
+                }
+            }
+        });
+    }
+</script>
+</body>
+</html>
+
+
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>AMR Control Center</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/eventemitter2@6/lib/eventemitter2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script src="https://code.createjs.com/1.0.0/easeljs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ros2d@0/build/ros2d.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #1a1a2e; --panel: #16213e; --blue: #0f3460; --light-blue: #3498db; 
+            --green: #27ae60; --orange: #e67e22; --red: #e74c3c; --text: #ecf0f1;
+            --purple: #9b59b6; --dark-grey: #2c3e50; --pink: #e84393;
+        }
+        body { 
+            font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); 
+            margin: 0; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 20px;
+        }
+        
+        .main-container { display: flex; gap: 20px; max-width: 95vw; width: 100%; flex-wrap: wrap; justify-content: center; }
+        .panel { background: var(--panel); padding: 25px 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); flex: 1; min-width: 350px; max-width: 420px; display: flex; flex-direction: column; }
+        
+        h2 { text-align: center; color: var(--light-blue); border-bottom: 2px solid var(--blue); padding-bottom: 15px; margin-top: 0; font-size: 1.3em;}
+        .section-title { font-size: 0.85em; color: #aaa; margin: 20px 0 10px 0; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; border-left: 3px solid var(--light-blue); padding-left: 10px;}
+        button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; font-size: 0.95em; transition: 0.2s; color: white; background: var(--blue); }
+        button:hover { filter: brightness(1.2); }
+        
+        /* Style cho nút E-STOP */
+        .btn-estop { background: #c0392b; color: white; font-size: 1.2em; border: 2px solid #ffcccc; box-shadow: 0 0 15px rgba(231, 76, 60, 0.6); text-transform: uppercase; padding: 15px; margin-bottom: 15px;}
+        .btn-estop:hover { background: #e74c3c; box-shadow: 0 0 25px rgba(231, 76, 60, 1);}
+        .btn-estop:active { transform: scale(0.95); }
+
+        .btn-home-set { background: var(--orange); } .btn-home-go { background: var(--green); } .btn-waypoint { background: var(--purple); } .btn-square { background: var(--pink); border: 2px dashed white; } .btn-pid { background: #f39c12; margin-top: 10px; }
+        .teleop-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .btn-nav { background: var(--dark-grey); font-size: 1.2em; padding: 15px; } .btn-nav:active { background: var(--light-blue); }
+        
+        .imu-dashboard { display: flex; justify-content: space-between; background: var(--dark-grey); padding: 15px; border-radius: 8px; text-align: center; }
+        .imu-item { flex: 1; font-weight: bold; font-size: 0.9em; } .imu-value { font-size: 1.4em; font-family: monospace; color: var(--light-blue); display: block; margin-top: 5px; }
+        .pid-container { display: flex; gap: 10px; } .pid-container input { flex: 1; padding: 12px; border-radius: 6px; border: 1px solid var(--blue); font-size: 1em; text-align: center; font-weight: bold; background: var(--bg); color: white; }
+        
+        .test-pid-controls { display: flex; gap: 10px; margin-top: 10px; }
+        .test-speed-input { width: 80px; text-align: center; border-radius: 6px; border: 2px solid #10b981; background: var(--bg); color: white; font-weight: bold; font-size: 1.2em; }
+        .chart-wrapper { background: var(--bg); padding: 10px; border-radius: 8px; margin-top: 5px; border: 1px solid var(--dark-grey); height: 130px; position: relative;}
+        .chart-title { position: absolute; top: 5px; left: 15px; font-size: 0.75em; color: #aaa; font-weight: bold; }
+        
+        #nav-map { background: #cfd8dc; border-radius: 8px; overflow: hidden; display: flex; justify-content: center; align-items: center; border: 2px solid var(--dark-grey); }
+        #status-bar { margin-top: 25px; padding: 15px; background: rgba(0,0,0,0.3); text-align: center; border-radius: 8px; font-size: 0.95em; }
+
+        /* Hiệu ứng rung màn hình khi khẩn cấp */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        .shake-active { animation: shake 0.4s; }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+
+    <div class="panel" id="control-panel">
+        <h2>🎮 ĐIỀU KHIỂN AMR</h2>
+
+        <button class="btn-estop" onclick="emergencyStop()">🛑 DỪNG KHẨN CẤP (E-STOP)</button>
+
+        <div class="section-title">1. KHỞI TẠO VỊ TRÍ (BẮT BUỘC)</div>
+        <button class="btn-home-set" onclick="setInitialPose()">📍 XÁC NHẬN VỊ TRÍ BẮT ĐẦU (HOME)</button>
+        
+        <div class="section-title">2. LỆNH ĐIỀU HƯỚNG TỰ ĐỘNG</div>
+        <button class="btn-home-go" onclick="sendGoal(HOME_X, HOME_Y, HOME_YAW)">🔋 TỰ ĐỘNG VỀ TRẠM SẠC</button>
+        <button class="btn-waypoint" onclick="sendGoal(-0.546, -0.512, -1.57)">📦 CHẠY ĐẾN ĐIỂM A (Kệ 1)</button>
+        <button class="btn-waypoint" onclick="sendGoal(0.997, -0.417, 0.0)">📦 CHẠY ĐẾN ĐIỂM B (Kệ 2)</button>
+        <button class="btn-waypoint" onclick="sendGoal(1.010, 0.557, 1.57)">📦 CHẠY ĐẾN ĐIỂM C (Kệ 3)</button>
+        <button class="btn-waypoint" onclick="sendGoal(-0.534, 0.278, 3.14159)">📦 CHẠY ĐẾN ĐIỂM D (Kệ 4)</button>
+        <button class="btn-square" onclick="startSquareTest()">🔄 CHẠY SQUARE TEST (4 VÒNG)</button>
+
+        <div class="section-title">3. ĐIỀU KHIỂN THỦ CÔNG (TELEOP)</div>
+        <div class="teleop-grid">
+            <div></div><button class="btn-nav" onmousedown="startMove(0.15, 0)" onmouseup="stopMove()">▲</button><div></div>
+            <button class="btn-nav" onmousedown="startMove(0, 0.8)" onmouseup="stopMove()">◀</button>
+            <button class="btn-nav" style="background: var(--red)" onclick="stopMove()">■</button>
+            <button class="btn-nav" onmousedown="startMove(0, -0.8)" onmouseup="stopMove()">▶</button>
+            <div></div><button class="btn-nav" onmousedown="startMove(-0.15, 0)" onmouseup="stopMove()">▼</button><div></div>
+        </div>
+        <div id="status-bar">Trạng thái: <span id="st-text" style="color:var(--red); font-weight:bold;">Đang chờ kết nối...</span></div>
+    </div>
+
+    <div class="panel" id="map-panel">
+        <h2>🗺️ BẢN ĐỒ & ĐỊNH VỊ</h2>
+        <div class="section-title">BẢN ĐỒ LƯỚI & ĐIỀU HƯỚNG</div>
+        <div id="nav-map"></div>
+        <div class="section-title" style="margin-top: 25px;">CHÚ THÍCH BẢN ĐỒ</div>
+        <div style="font-size: 0.9em; padding: 10px; background: var(--dark-grey); border-radius: 8px;">
+            <div style="display: flex; justify-content: space-around; margin-bottom: 5px;">
+                <div><span style="color: #000;">⬛</span> Vật cản</div>
+                <div><span style="color: #fff;">⬜</span> Mặt sàn</div>
+                <div><span style="color: #f1c40f;">📍</span> Robot</div>
+            </div>
+            <div style="display: flex; justify-content: space-around;">
+                <div><span style="color: #ff0000;">🔴</span> LiDAR</div>
+                <div><span style="color: #27ae60;">🟢</span> Đường đi</div>
+                <div><span style="color: #9b59b6;">🎯</span> Điểm đến</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel" id="tuning-panel">
+        <h2>🛠️ GIÁM SÁT & TUNING</h2>
+
+        <div class="section-title">THÔNG SỐ IMU BNO055</div>
+        <div class="imu-dashboard">
+            <div class="imu-item">🧭 Góc Yaw<span id="yaw-deg" class="imu-value">0.00°</span></div>
+            <div class="imu-item">📐 Theta<span id="yaw-rad" class="imu-value" style="color:#e74c3c;">0.000</span></div>
+        </div>
+
+        <div class="section-title">CHỈNH ĐỊNH PID ĐỘNG CƠ</div>
+        <div class="pid-container">
+            <input type="number" id="input-kp" value="600.0" step="0.1" placeholder="Kp">
+            <input type="number" id="input-ki" value="80.0" step="0.1" placeholder="Ki">
+        </div>
+        <button class="btn-pid" onclick="sendPID()">⚙️ NẠP THÔNG SỐ PID LÊN STM32</button>
+        
+        <div class="section-title">CHẠY THỬ ĐÁP ỨNG (m/s)</div>
+        <div class="test-pid-controls">
+            <input type="number" id="test-speed" class="test-speed-input" value="0.20" step="0.05">
+            <button style="background: #10b981; margin: 0; flex: 1;" onclick="startTestMove()">⬆️ CHẠY</button>
+            <button style="background: #e74c3c; margin: 0; flex: 1;" onclick="stopMove()">🛑 DỪNG</button>
+        </div>
+        
+        <div class="section-title">ĐỒ THỊ ĐÁP ỨNG TỪNG BÁNH</div>
+        <div class="chart-wrapper"><div class="chart-title">L-WHEEL</div><canvas id="chartLeft"></canvas></div>
+        <div class="chart-wrapper"><div class="chart-title">R-WHEEL</div><canvas id="chartRight"></canvas></div>
+    </div>
+
+</div>
+
+<script>
+    // ==========================================================
+    // CẤU HÌNH TỌA ĐỘ TRẠM SẠC
+    // ==========================================================
+    const HOME_X = -1.30484;
+    const HOME_Y = -0.120394;
+    const HOME_YAW = 0.159531;
+    const HOME_QZ = 0.079681; 
+    const HOME_QW = 0.99682;
+    // ==========================================================
+
+    var ip = "192.168.1.16"; 
+    var ros = new ROSLIB.Ros({ url : 'ws://' + ip + ':9090' });
+
+    ros.on('connection', () => { 
+        updateStatus("Đã kết nối Robot - Hãy Khởi tạo vị trí Bắt đầu!", "#27ae60"); 
+        initMap(); 
+    });
+    ros.on('error', () => { updateStatus("Lỗi kết nối đến Robot!", "#e74c3c"); });
+    ros.on('close', () => { updateStatus("Đã ngắt kết nối.", "#e74c3c"); });
+
+    function updateStatus(text, color) {
+        document.getElementById('st-text').innerText = text;
+        document.getElementById('st-text').style.color = color;
+    }
+
+    var initialPoseTopic = new ROSLIB.Topic({ ros: ros, name: '/initialpose', messageType: 'geometry_msgs/PoseWithCovarianceStamped' });
+    function setInitialPose() {
+        var pose = new ROSLIB.Message({
+            header: { frame_id: 'map' },
+            pose: { pose: { position: { x: HOME_X, y: HOME_Y, z: 0.0 }, orientation: { x: 0.0, y: 0.0, z: HOME_QZ, w: HOME_QW } }, covariance: [0.05, 0, 0, 0, 0, 0,  0, 0.05, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0.05] }
+        });
+        initialPoseTopic.publish(pose);
+        updateStatus("📍 Đã nạp tọa độ Bắt Đầu (Home). Hệ thống sẵn sàng!", "#e67e22");
+    }
+
+    // --- ĐIỀU HƯỚNG TỰ ĐỘNG ---
+    var goalTopic = new ROSLIB.Topic({ ros: ros, name: '/goal_pose', messageType: 'geometry_msgs/PoseStamped' });
+    var isNavigating = false;
+    var isSquareTesting = false; var squareLoopCount = 0; var squarePointIndex = 0; const maxSquareLoops = 4;
+    
+    const squareWaypoints = [
+        { x: -0.546, y: -0.512, yaw: -1.57, name: "A", color: "#9b59b6" }, 
+        { x: 0.997, y: -0.417, yaw: 0.0, name: "B", color: "#9b59b6" },
+        { x: 1.010, y: 0.557, yaw: 1.57, name: "C", color: "#9b59b6" }, 
+        { x: -0.534, y: 0.278, yaw: 3.14159, name: "D", color: "#9b59b6" }
+
+    ];
+    const homeWaypoint = { x: HOME_X, y: HOME_Y, yaw: HOME_YAW, color: "#27ae60" };
+
+    function sendGoal(targetX, targetY, targetYaw, isAutoLoop = false) {
+        var qz = Math.sin(targetYaw/2); var qw = Math.cos(targetYaw/2);
+        goalTopic.publish(new ROSLIB.Message({ header: { frame_id: 'map' }, pose: { position: { x: targetX, y: targetY, z: 0.0 }, orientation: { x: 0.0, y: 0.0, z: qz, w: qw } } }));
+        isNavigating = true;
+        if (!isAutoLoop) { isSquareTesting = false; updateStatus("🚀 Đang tự động di chuyển đến mục tiêu...", "#3498db"); }
+    }
+
+    function startSquareTest() {
+        if (isNavigating) { alert("⚠️ Robot đang bận di chuyển."); return; }
+        isSquareTesting = true; squareLoopCount = 0; squarePointIndex = 0;
+        updateStatus("🔄 Square Test (Vòng 1/4) - Đang tiến về Điểm A...", "#e84393");
+        sendGoal(squareWaypoints[0].x, squareWaypoints[0].y, squareWaypoints[0].yaw, true);
+    }
+
+    // --- HÀM DỪNG KHẨN CẤP (E-STOP) BẮT BUỘC ---
+    var cmdVelTopic = new ROSLIB.Topic({ ros: ros, name: '/cmd_vel', messageType: 'geometry_msgs/Twist' });
+    var moveInterval;
+
+    function emergencyStop() {
+        // 1. Tắt các vòng lặp Teleop và chu trình Test
+        isNavigating = false;
+        isSquareTesting = false;
+        if (moveInterval) clearInterval(moveInterval);
+
+        // 2. Ép vận tốc bánh xe về 0 ngay lập tức
+        cmdVelTopic.publish(new ROSLIB.Message({ linear: { x: 0, y: 0, z: 0 }, angular: { x: 0, y: 0, z: 0 } }));
+
+        // 3. Hủy lệnh đang chạy ngầm của Nav2 bằng Action Cancel Service
+        var cancelClient = new ROSLIB.Service({
+            ros: ros,
+            name: '/navigate_to_pose/_action/cancel_goal',
+            serviceType: 'action_msgs/srv/CancelGoal'
+        });
+
+        // Gửi mảng uuid toàn số 0 mang ý nghĩa: "Hủy TẤT CẢ các goal đang chạy"
+        var request = new ROSLIB.ServiceRequest({
+            goal_info: {
+                goal_id: { uuid: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] }, 
+                stamp: { sec: 0, nanosec: 0 }
+            }
+        });
+
+        cancelClient.callService(request, function(result) {
+            console.log("Đã gửi lệnh hủy tới Nav2:", result);
+        });
+
+        // 4. Xóa nét vẽ lộ trình cũ trên bản đồ và Cập nhật giao diện
+        if (pathShape) pathShape.graphics.clear();
+        updateStatus("🚨 E-STOP: ĐÃ HỦY TẤT CẢ LỆNH & DỪNG ROBOT!", "#c0392b");
+
+        // Thêm hiệu ứng rung màn hình cảnh báo
+        document.body.classList.add('shake-active');
+        setTimeout(() => { document.body.classList.remove('shake-active'); }, 400);
+    }
+
+    var navStatusTopic = new ROSLIB.Topic({ ros: ros, name: '/navigate_to_pose/_action/status', messageType: 'action_msgs/msg/GoalStatusArray' });
+    navStatusTopic.subscribe(function(message) {
+        if (!isNavigating && !isSquareTesting) return;
+        if (!message.status_list || message.status_list.length === 0) return;
+        var latest_status = message.status_list[message.status_list.length - 1].status;
+        
+        if (latest_status === 4) { 
+            isNavigating = false;
+            if(pathShape) pathShape.graphics.clear();
+
+            if (isSquareTesting) {
+                squarePointIndex++;
+                if (squarePointIndex >= squareWaypoints.length) { squarePointIndex = 0; squareLoopCount++; }
+                if (squareLoopCount < maxSquareLoops) {
+                    var nextPoint = squareWaypoints[squarePointIndex];
+                    updateStatus(`✅ Đã tới điểm. Vòng ${squareLoopCount + 1}/4 - Tiến về Điểm ${nextPoint.name}...`, "#e84393");
+                    setTimeout(() => { if (isSquareTesting) sendGoal(nextPoint.x, nextPoint.y, nextPoint.yaw, true); }, 1500);
+                } else {
+                    isSquareTesting = false; updateStatus("🎉 HOÀN THÀNH: Chạy xong 4 vòng Square Test!", "#27ae60");
+                }
+            } else { updateStatus("✅ Robot đã đến điểm đích thành công!", "#27ae60"); }
+        } else if (latest_status === 6) { 
+            isNavigating = false; isSquareTesting = false; 
+            if(pathShape) pathShape.graphics.clear();
+            updateStatus("❌ Lỗi: Bị kẹt hoặc không tìm thấy đường đi!", "#e74c3c"); 
+        }
+    });
+
+    // --- TELEOP CƠ BẢN ---
+    function startMove(linear, angular) {
+        isNavigating = false; isSquareTesting = false; if(pathShape) pathShape.graphics.clear();
+        if (moveInterval) clearInterval(moveInterval);
+        updateStatus("🎮 Đang xuất lệnh di chuyển...", "#8e44ad");
+        moveInterval = setInterval(() => { cmdVelTopic.publish(new ROSLIB.Message({ linear: { x: linear, y: 0, z: 0 }, angular: { x: 0, y: 0, z: angular } })); }, 100);
+    }
+    function startTestMove() { var speed = parseFloat(document.getElementById('test-speed').value); if (!isNaN(speed)) startMove(speed, 0); }
+    function stopMove() { clearInterval(moveInterval); isSquareTesting = false; cmdVelTopic.publish(new ROSLIB.Message({ linear: { x: 0, y: 0, z: 0 }, angular: { x: 0, y: 0, z: 0 } })); updateStatus("⏹️ Robot đã dừng.", "#e74c3c"); }
+
+    // --- IMU & PID ---
+    var imuTopic = new ROSLIB.Topic({ ros: ros, name: '/imu/data', messageType: 'sensor_msgs/msg/Imu' });
+    imuTopic.subscribe(function(message) {
+        var yaw_rad = 2 * Math.atan2(message.orientation.z, message.orientation.w);
+        document.getElementById('yaw-deg').innerText = (yaw_rad * 180.0 / Math.PI).toFixed(2) + "°";
+        document.getElementById('yaw-rad').innerText = yaw_rad.toFixed(3);
+    });
+
+    var pidTopic = new ROSLIB.Topic({ ros: ros, name: '/pid_command', messageType: 'std_msgs/msg/String' });
+    function sendPID() {
+        var kp = document.getElementById('input-kp').value; var ki = document.getElementById('input-ki').value;
+        pidTopic.publish(new ROSLIB.Message({ data: "PID," + parseFloat(kp).toFixed(2) + "," + parseFloat(ki).toFixed(2) + "\n" }));
+        updateStatus("⚙️ Đã nạp PID: Kp=" + kp + ", Ki=" + ki, "#f39c12");
+    }
+
+    // --- CHART ĐÁP ỨNG ---
+    const WHEEL_BASE = 0.30; const maxDataPoints = 40;
+    var tar_l = 0.0, tar_r = 0.0, act_l = 0.0, act_r = 0.0;
+    cmdVelTopic.subscribe(function(msg) { let v = msg.linear.x; let w = msg.angular.z; tar_l = v - (w * WHEEL_BASE / 2.0); tar_r = v + (w * WHEEL_BASE / 2.0); });
+    var odomTopic = new ROSLIB.Topic({ ros: ros, name: '/odom', messageType: 'nav_msgs/msg/Odometry' });
+    odomTopic.subscribe(function(msg) { let v = msg.twist.twist.linear.x; let w = msg.twist.twist.angular.z; act_l = v - (w * WHEEL_BASE / 2.0); act_r = v + (w * WHEEL_BASE / 2.0); });
+    const chartOptions = { animation: false, responsive: true, maintainAspectRatio: false, scales: { y: { min: -0.5, max: 0.5, grid: { color: '#34495e' }, ticks: { color: '#ecf0f1', stepSize: 0.2 } }, x: { display: false } }, plugins: { legend: { display: false } }, layout: { padding: { top: 20 } } };
+    var ctxLeft = document.getElementById('chartLeft').getContext('2d'); var chartLeft = new Chart(ctxLeft, { type: 'line', data: { labels: Array(maxDataPoints).fill(''), datasets: [ { borderColor: '#e74c3c', data: Array(maxDataPoints).fill(0), borderWidth: 2, pointRadius: 0, tension: 0.1 }, { borderColor: '#3498db', data: Array(maxDataPoints).fill(0), borderWidth: 2, pointRadius: 0, tension: 0.1 } ] }, options: chartOptions });
+    var ctxRight = document.getElementById('chartRight').getContext('2d'); var chartRight = new Chart(ctxRight, { type: 'line', data: { labels: Array(maxDataPoints).fill(''), datasets: [ { borderColor: '#e74c3c', data: Array(maxDataPoints).fill(0), borderWidth: 2, pointRadius: 0, tension: 0.1 }, { borderColor: '#3498db', data: Array(maxDataPoints).fill(0), borderWidth: 2, pointRadius: 0, tension: 0.1 } ] }, options: chartOptions });
+    setInterval(() => { chartLeft.data.datasets[0].data.shift(); chartLeft.data.datasets[0].data.push(tar_l); chartLeft.data.datasets[1].data.shift(); chartLeft.data.datasets[1].data.push(act_l); chartLeft.update(); chartRight.data.datasets[0].data.shift(); chartRight.data.datasets[0].data.push(tar_r); chartRight.data.datasets[1].data.shift(); chartRight.data.datasets[1].data.push(act_r); chartRight.update(); }, 100);
+
+    // --- BẢN ĐỒ & LIDAR ---
+    var mapViewer, robotMarker, laserScanShape, pathShape, waypointsShape;
+    var currentRobotX = null, currentRobotY = null, currentRobotYaw = null;
+
+    function initMap() {
+        if(mapViewer) return; 
+        mapViewer = new ROS2D.Viewer({ divID : 'nav-map', width : 360, height : 420 });
+        var gridClient = new ROS2D.OccupancyGridClient({ ros : ros, rootObject : mapViewer.scene, continuous: true });
+        gridClient.on('change', function() {
+            mapViewer.scaleToDimensions(gridClient.currentGrid.width, gridClient.currentGrid.height);
+            mapViewer.shift(gridClient.currentGrid.pose.position.x, gridClient.currentGrid.pose.position.y);
+        });
+
+        waypointsShape = new createjs.Container();
+        let allPoints = [...squareWaypoints, homeWaypoint];
+        allPoints.forEach(wp => {
+            var marker = new createjs.Shape();
+            marker.graphics.beginFill(wp.color).drawCircle(0, 0, 0.08);
+            marker.graphics.beginFill("#ffffff").drawCircle(0, 0, 0.03);
+            marker.x = wp.x; marker.y = -wp.y; 
+            waypointsShape.addChild(marker);
+        });
+        mapViewer.scene.addChild(waypointsShape);
+
+        pathShape = new createjs.Shape();
+        mapViewer.scene.addChild(pathShape);
+        var planTopic = new ROSLIB.Topic({ ros: ros, name: '/plan', messageType: 'nav_msgs/msg/Path' });
+        planTopic.subscribe(function(message) {
+            pathShape.graphics.clear();
+            if (message.poses.length > 0) {
+                pathShape.graphics.setStrokeStyle(0.04, "round", "round").beginStroke("#27ae60");
+                pathShape.graphics.moveTo(message.poses[0].pose.position.x, -message.poses[0].pose.position.y);
+                for(var i = 1; i < message.poses.length; i++){
+                    pathShape.graphics.lineTo(message.poses[i].pose.position.x, -message.poses[i].pose.position.y);
+                }
+                pathShape.graphics.endStroke();
+            }
+        });
+
+        laserScanShape = new createjs.Shape();
+        mapViewer.scene.addChild(laserScanShape);
+
+        robotMarker = new createjs.Container();
+        var base = new createjs.Shape(); base.graphics.beginFill("#34495e").drawRoundRect(-0.14, -0.15, 0.28, 0.30, 0.02);
+        var wheelL = new createjs.Shape(); wheelL.graphics.beginFill("#000000").drawRect(-0.06, -0.18, 0.12, 0.04);
+        var wheelR = new createjs.Shape(); wheelR.graphics.beginFill("#000000").drawRect(-0.06, 0.14, 0.12, 0.04);
+        var lidar = new createjs.Shape(); lidar.graphics.beginFill("#111111").drawCircle(-0.04, 0, 0.045); lidar.graphics.beginFill("#f1c40f").drawCircle(-0.04, 0, 0.015);
+        var dirArrow = new createjs.Shape(); dirArrow.graphics.beginFill("#f1c40f").moveTo(0.04, -0.05).lineTo(0.16, 0).lineTo(0.04, 0.05).closePath();
+        robotMarker.addChild(base, wheelL, wheelR, lidar, dirArrow);
+        robotMarker.visible = false; 
+        mapViewer.scene.addChild(robotMarker);
+
+        var poseTopic = new ROSLIB.Topic({ ros: ros, name: '/amcl_pose', messageType: 'geometry_msgs/PoseWithCovarianceStamped' });
+        poseTopic.subscribe(function(message) {
+            currentRobotX = message.pose.pose.position.x;
+            currentRobotY = message.pose.pose.position.y; 
+            currentRobotYaw = 2 * Math.atan2(message.pose.pose.orientation.z, message.pose.pose.orientation.w);
+            robotMarker.visible = true;
+            robotMarker.x = currentRobotX; robotMarker.y = -currentRobotY; 
+            robotMarker.rotation = -currentRobotYaw * (180.0 / Math.PI); 
+        });
+
+        var scanTopic = new ROSLIB.Topic({ ros: ros, name: '/scan', messageType: 'sensor_msgs/msg/LaserScan' });
+        scanTopic.subscribe(function(message) {
+            if (currentRobotX === null) return; 
+            laserScanShape.graphics.clear();
+            laserScanShape.graphics.beginFill("#e74c3c"); 
+            for (var i = 0; i < message.ranges.length; i++) {
+                var range = message.ranges[i];
+                if (range >= message.range_min && range <= message.range_max) {
+                    var global_angle = currentRobotYaw + message.angle_min + i * message.angle_increment;
+                    laserScanShape.graphics.drawRect(currentRobotX + range * Math.cos(global_angle) - 0.025, -(currentRobotY + range * Math.sin(global_angle)) - 0.025, 0.05, 0.05);
+                }
+            }
+        });
+    }
+</script>
+</body>
+</html> 
