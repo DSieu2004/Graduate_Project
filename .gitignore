@@ -25,3 +25,4 @@ __pycache__/
 # ROS bags / databases
 *.bag
 *.db3
+mjpg-streamer/
