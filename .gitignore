@@ -1,0 +1,27 @@
+# ROS2 build folders
+build/
+install/
+log/
+
+# colcon logs
+*.log
+
+# VSCode
+.vscode/
+
+# Linux temp
+*~
+*.swp
+.DS_Store
+
+# Generated frames/maps
+*.pdf
+*.gv
+
+# Python cache
+__pycache__/
+*.pyc
+
+# ROS bags / databases
+*.bag
+*.db3

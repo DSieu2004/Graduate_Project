@@ -74,7 +74,7 @@ def generate_launch_description():
     # 2. Khai báo đường dẫn các file cấu hình (Config)
     map_yaml_file = os.path.join(os.path.expanduser('~'), 'my_room_map.yaml')
     my_params_file = os.path.join(pkg_share, 'config', 'my_nav2_params.yaml')
-    ekf_params_file = os.path.join(pkg_share, 'config', 'ekf.yaml') # Đã thêm EKF config
+    ekf_params_file = os.path.join(pkg_share, 'config', 'ekf.yaml') 
 
     return LaunchDescription([
         # --- 1. KHỞI ĐỘNG LIDAR ---
@@ -112,7 +112,7 @@ def generate_launch_description():
         ),
 
         # --- 3. ĐIỀU KHIỂN TRUNG TÂM (STM32 INTERFACE) ---
-        # Đọc Odom từ bánh xe, đọc Yaw từ IMU và phát topic /odom thô + /imu/data
+        # Đọc Odom từ bánh xe, đọc Yaw từ IMU và phát topic /odom + /imu/data
         Node(
             package='agv_controller',
             executable='diff_drive_controller',

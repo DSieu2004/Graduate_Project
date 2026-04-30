@@ -15,9 +15,9 @@ class QRCodeScanner(Node):
         # 2. Khởi tạo Camera
         self.cap = cv2.VideoCapture(0)
         if not self.cap.isOpened():
-            self.get_logger().error("❌ Không thể mở được Camera! Kiểm tra lại cổng USB.")
+            self.get_logger().error("Không thể mở được Camera! Kiểm tra lại cổng USB.")
         else:
-            self.get_logger().info("✅ Đã mở Camera thành công! Đang quét ngầm...")
+            self.get_logger().info("Đã mở Camera thành công! Đang quét ngầm...")
 
         # 3. Tạo Timer để quét ảnh liên tục (10 lần/giây ~ 10Hz)
         self.timer = self.create_timer(0.1, self.scan_callback)

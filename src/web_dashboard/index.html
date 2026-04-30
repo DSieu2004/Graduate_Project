@@ -50,6 +50,12 @@
         #nav-map { background: #cfd8dc; border-radius: 8px; overflow: hidden; display: flex; justify-content: center; align-items: center; border: 2px solid var(--dark-grey); }
         #status-bar { margin-top: 25px; padding: 15px; background: rgba(0,0,0,0.3); text-align: center; border-radius: 8px; font-size: 0.95em; }
 
+        /* Style cho danh sách lịch sử QR */
+        #qr-history { background: #0f3460; height: 140px; border-radius: 8px; overflow-y: auto; padding: 10px; border: 1px solid var(--blue); }
+        .qr-list-item { border-bottom: 1px solid #16213e; padding: 6px 0; font-size: 0.9em; }
+        .qr-time { color: var(--orange); font-family: monospace; margin-right: 8px; }
+        .qr-data { color: #fff; font-weight: bold; }
+
         @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
         .shake-active { animation: shake 0.4s; }
     </style>
@@ -61,18 +67,33 @@
     <div class="panel" id="control-panel">
         <h2>🎮 ĐIỀU KHIỂN ROBOT</h2>
 
-        <button class="btn-estop" onclick="emergencyStop()">🛑 DỪNG KHẨN CẤP (AGV 1)</button>
+        <button class="btn-estop" onclick="emergencyStop()">🛑 DỪNG KHẨN CẤP (AGV )</button>
 
         <div class="section-title">1. KHỞI TẠO VỊ TRÍ (BẮT BUỘC)</div>
         <button class="btn-home-set" onclick="setInitialPose()">📍 XÁC NHẬN VỊ TRÍ BẮT ĐẦU (HOME)</button>
-        
+       
         <div class="section-title">2. LỆNH ĐIỀU HƯỚNG TỰ ĐỘNG</div>
         <button class="btn-home-go" onclick="sendGoal(HOME_X, HOME_Y, 0.0)">🔋 TỰ ĐỘNG VỀ TRẠM SẠC</button>
-        <button class="btn-waypoint" onclick="sendGoal(-0.546, -0.512, -1.57)">📦 CHẠY ĐẾN ĐIỂM A (Kệ 1)</button>
-        <button class="btn-waypoint" onclick="sendGoal(0.997, -0.417, 0.0)">📦 CHẠY ĐẾN ĐIỂM B (Kệ 2)</button>
-        <button class="btn-waypoint" onclick="sendGoal(1.010, 0.278, 1.57)">📦 CHẠY ĐẾN ĐIỂM C (Kệ 3)</button> 
-        <button class="btn-waypoint" onclick="sendGoal(-0.534, 0.278, 3.14159)">📦 CHẠY ĐẾN ĐIỂM D (Kệ 4)</button>
-        <button class="btn-square" onclick="startSquareTest()">🔄 CHẠY SQUARE TEST (4 VÒNG)</button>
+        <button class="btn-square" onclick="startSquareTest()" style="margin-bottom: 15px;">🔄 CHẠY CHU TRÌNH TEST LIÊN TỤC</button>
+        
+        <!-- BẮT ĐẦU PHẦN THÊM MỚI: CÔNG CỤ TẠO WAYPOINT -->
+        <div class="section-title" style="border-left-color: var(--purple);">2B. LẬP BẢN ĐỒ KỆ HÀNG (LƯU VĨNH VIỄN)</div>
+        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--purple);">
+            <p style="font-size: 0.85em; color: #aaa; margin: 0 0 10px 0;">👉 Bật chế độ chấm điểm, click lên map, nhập tên và bấm LƯU.</p>
+            
+            <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                <button id="btn-multi-wp" onclick="toggleMultiWaypointMode()" style="background: #34495e; flex: 2;">📍 1. BẬT CHẾ ĐỘ CHẤM ĐIỂM</button>
+                <button onclick="clearDraftPoints()" style="background: #7f8c8d; flex: 1;">XÓA NHÁP</button>
+            </div>
+            
+            <div style="display: flex; gap: 5px;">
+                <button onclick="saveAllDraftWaypoints()" style="background: #27ae60; font-size: 1.05em; border: 2px solid #fff;">💾 2. LƯU TẤT CẢ VÀO HỆ THỐNG</button>
+                <button onclick="clearAllSavedWaypoints()" style="background: #c0392b;" title="Xóa toàn bộ bộ nhớ">🗑️ RESET</button>
+            </div>
+        </div>
+
+        <div id="dynamic-waypoints-list" style="margin-top: 10px; display: flex; flex-direction: column; gap: 5px;"></div>
+        
 
         <div class="section-title">3. ĐIỀU KHIỂN THỦ CÔNG (JOYSTICK 360)</div>
         <div id="joystick-zone" style="position: relative; width: 100%; height: 180px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 2px dashed var(--dark-grey); margin-top: 10px; touch-action: none; display: flex; justify-content: center; align-items: center;">
@@ -91,7 +112,7 @@
             <div style="display: flex; justify-content: space-around; margin-bottom: 5px;">
                 <div><span style="color: #000;">⬛</span> Vật cản</div>
                 <div><span style="color: #fff;">⬜</span> Mặt sàn</div>
-                <div><span style="color: #f1c40f;">📍</span> AGV 1 (Vàng)</div>
+                <div><span style="color: #f1c40f;">📍</span> AGV (Vàng)</div>
             </div>
             <div style="display: flex; justify-content: space-around;">
                 <div><span style="color: #ff0000;">🔴</span> LiDAR</div>
@@ -111,15 +132,15 @@
 
         <div class="section-title">CHỈNH ĐỊNH PID ĐỘNG CƠ</div>
         <div class="pid-container">
-            <input type="number" id="input-kp" value="90.0" step="0.1" placeholder="Kp">
-            <input type="number" id="input-ki" value="20.0" step="0.1" placeholder="Ki">
-            <input type="number" id="input-kd" value="2.0" step="0.1" placeholder="Kd">
+            <input type="number" id="input-kp" value="600.0" step="0.1" placeholder="Kp">
+            <input type="number" id="input-ki" value="80.0" step="0.1" placeholder="Ki">
+            <input type="number" id="input-kd" value="15.0" step="0.1" placeholder="Kd">
         </div>
         <button class="btn-pid" onclick="sendPID()">⚙️ NẠP THÔNG SỐ PID LÊN STM32</button>
         
         <div class="section-title">CHẠY THỬ ĐÁP ỨNG (m/s)</div>
         <div class="test-pid-controls">
-            <input type="number" id="test-speed" class="test-speed-input" value="0.30" step="0.05">
+            <input type="number" id="test-speed" class="test-speed-input" value="0.20" step="0.05">
             <button style="background: #10b981; margin: 0; flex: 1;" onclick="startTestMove()">⬆️ CHẠY</button>
             <button style="background: #e74c3c; margin: 0; flex: 1;" onclick="stopMove()">🛑 DỪNG</button>
         </div>
@@ -129,11 +150,91 @@
         <div class="chart-wrapper"><div class="chart-title">R-WHEEL</div><canvas id="chartRight"></canvas></div>
     </div>
 
+    <div class="panel" id="camera-panel">
+        <h2>📷 CAMERA & SCANNER</h2>
+        <div class="section-title">LIVE STREAM WEBCAM</div>
+        
+        <div style="background:#000;height:240px;border-radius:10px;overflow:hidden;border:2px solid var(--dark-grey);display:flex;justify-content:center;align-items:center;">
+            <img id="camera-stream" 
+                 src="http://pi4.local:8080/stream?topic=/image_raw" 
+                 style="width:100%; height:auto;" 
+                 alt="Mất kết nối Camera - Hãy bấm Reload">
+        </div>
+
+        <button onclick="document.getElementById('camera-stream').src='http://pi4.local:8080/stream?topic=/image_raw&t=' + new Date().getTime()" style="margin-top:10px;background:#16a085">
+            🔄 KẾT NỐI LẠI CAMERA
+        </button>
+
+        <div class="section-title" style="margin-top: 20px;">TÍN HIỆU TỨC THỜI</div>
+        <div id="qr-result-box" style="background: var(--dark-grey); padding: 12px; border-radius: 8px; text-align: center; color: #aaa; border: 2px dashed #555; font-size: 1.0em; transition: 0.3s; word-wrap: break-word;">
+            Đang chờ quét kiện hàng...
+        </div>
+
+        <div class="section-title" style="margin-top: 20px;">LỊCH SỬ KIỆN HÀNG ĐÃ QUÉT</div>
+        <div id="qr-history">
+            <ul id="qr-list" style="list-style-type: none; padding: 0; margin: 0;">
+                </ul>
+        </div>
+    </div>
+
+    <div class="panel" id="sim-panel" style="max-width: 100%; width: 100%; flex-basis: 100%; margin-top: 20px;">
+        <h2 style="color: var(--purple); border-bottom-color: var(--purple);">🌐 MÔ PHỎNG ĐIỀU PHỐI ĐỘI XE (FMS SIMULATION)</h2>
+        <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+            
+            <div style="flex: 3; min-width: 600px;">
+                <div class="section-title" style="border-left-color: var(--purple);">BẢN ĐỒ MÔ PHỎNG DIGITAL TWIN</div>
+                <div id="sim-map" style="background: #cfd8dc; border-radius: 8px; border: 3px solid var(--purple); width: 100%; height: 850px; display: flex; justify-content: center; align-items: center; overflow: hidden;"></div>
+            </div>
+
+            <div style="flex: 1; min-width: 300px; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 12px; display: flex; flex-direction: column;">
+                <div class="section-title" style="border-left-color: var(--purple);">THIẾT LẬP ĐỘI XE</div>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <input type="number" id="robot-count" value="3" min="1" max="10" 
+                           style="flex: 1; padding: 12px; border-radius: 6px; background: var(--bg); color: white; border: 2px solid var(--purple); text-align: center; font-weight: bold; font-size: 1.2em;">
+                    <button class="btn-waypoint" onclick="spawnRobots()" style="flex: 2; margin: 0; font-size: 1.1em; background: var(--purple);">➕ THÊM ROBOT ẢO</button>
+                </div>
+
+                <div class="section-title" style="border-left-color: var(--purple); margin-top: 20px;">1A. GÁN LỆNH THỦ CÔNG (MANUAL)</div>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <select id="order-robot" style="flex: 1; padding: 10px; border-radius: 6px; background: var(--bg); color: white; border: 1px solid var(--purple); font-weight: bold;">
+                        <option value="">-- Chọn Xe --</option>
+                    </select>
+                    <select id="order-dest" style="flex: 1; padding: 10px; border-radius: 6px; background: var(--bg); color: white; border: 1px solid var(--purple); font-weight: bold;">
+                        <option value="HOME">Trạm Sạc</option>
+                    </select>
+                </div>
+                <button class="btn-waypoint" onclick="assignTask()" style="background: #3498db; margin-bottom: 20px;">📌 GÁN LỆNH THỦ CÔNG</button>
+
+                <div class="section-title" style="border-left-color: #e84393;">1B. AI GIAO VIỆC TỰ ĐỘNG (DRL REWARD)</div>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <select id="ai-order-dest" style="flex: 2; padding: 10px; border-radius: 6px; background: var(--bg); color: white; border: 1px solid #e84393; font-weight: bold;">
+                        <option value="HOME">Trạm Sạc (HOME)</option>
+                    </select>
+                    <button class="btn-waypoint" onclick="assignTaskByAI()" style="flex: 1; background: #e84393; margin: 0;">🧠 AI TỰ CHỌN XE</button>
+                </div>
+                <div class="section-title" style="border-left-color: var(--orange);">2. DANH SÁCH LỆNH CHỜ THỰC THI</div>
+                <div id="sim-pending-list" style="background: rgba(230, 126, 34, 0.1); border-radius: 8px; padding: 10px; border: 1px dashed #e67e22; min-height: 50px; margin-bottom: 15px; max-height: 120px; overflow-y: auto;">
+                    <span style="color: #888; font-size: 0.9em;">Chưa có lệnh nào được gán...</span>
+                </div>
+
+                <button class="btn-waypoint" onclick="executeAllTasks()" style="background: #e67e22; font-size: 1.1em; padding: 15px; text-transform: uppercase;">🚀 PHÁT LỆNH CHẠY ĐỒNG LOẠT</button>
+              
+
+                <div class="section-title" style="border-left-color: var(--purple);">DANH SÁCH TRẠNG THÁI XE</div>
+                <div id="sim-status-list" style="flex: 1; max-height: 400px; background: var(--bg); border-radius: 8px; padding: 15px; overflow-y: auto; border: 1px solid #333;">
+                    <p style="color: #666; font-style: italic; text-align: center; margin-top: 20px;">Chưa có xe nào trong hệ thống...</p>
+                </div>  
+                <button class="btn-waypoint" onclick="exportReportCSV()" style="background: #27ae60; font-size: 1em; padding: 12px; margin-top: 15px; border: 2px dashed #fff;">
+                    📥 XUẤT BÁO CÁO CA LÀM VIỆC (EXCEL/CSV)
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
     // ==========================================================
-    // CẤU HÌNH TỌA ĐỘ TRẠM SẠC
+    // CẤU HÌNH TỌA ĐỘ TRẠM SẠC VÀ KẾT NỐI ROS
     // ==========================================================
     const HOME_X = -1.30484;
     const HOME_Y = -0.120394;
@@ -141,12 +242,21 @@
     const HOME_QZ = 0.079681; 
     const HOME_QW = 0.99682;
 
-    var ip = "pi4.local";
+    var ip = "pi4.local"; 
     var ros = new ROSLIB.Ros({ url : 'ws://' + ip + ':9090' });
+
+    // CỜ TRẠNG THÁI KHÓA AN TOÀN VÀ TỌA ĐỘ ĐỘNG
+    var waitingForQR = false; 
+    var squareWaypoints = []; // Đã dọn dẹp các mốc cứng
+    var isMultiWpMode = false;
+    var draftWaypoints = [];
+    var draftShapes = null;
+    var simDraftShapes = null;
 
     ros.on('connection', () => { 
         updateStatus("Đã kết nối Hệ thống Robot - Hãy Khởi tạo vị trí Bắt đầu!", "#27ae60"); 
         initMap(); 
+        initSimMap(); // Nạp map mô phỏng ngay từ đầu
         initJoystick();
     });
     
@@ -158,40 +268,209 @@
         document.getElementById('st-text').style.color = color;
     }
 
+    // ==========================================================
+    // TÍNH NĂNG WAYPOINT ĐỘNG (LƯU VĨNH VIỄN)
+    // ==========================================================
+    function toggleMultiWaypointMode() {
+        isMultiWpMode = !isMultiWpMode;
+        var btn = document.getElementById('btn-multi-wp');
+        if(isMultiWpMode) {
+            btn.innerHTML = "🔴 ĐANG CHẤM (CLICK LÊN MAP)...";
+            btn.style.background = "#e67e22";
+            updateStatus("👉 Hãy click lên Bản đồ (bên dưới) để tạo các Kệ hàng mới.", "#f39c12");
+        } else {
+            btn.innerHTML = "📍 1. BẬT CHẾ ĐỘ CHẤM ĐIỂM";
+            btn.style.background = "#34495e";
+            updateStatus("Đã tắt chế độ chấm điểm.", "#aaa");
+        }
+    }
+
+    function clearDraftPoints() {
+        draftWaypoints = [];
+        if (typeof draftShapes !== 'undefined' && draftShapes) draftShapes.removeAllChildren();
+        if (typeof simDraftShapes !== 'undefined' && simDraftShapes) simDraftShapes.removeAllChildren();
+        updateStatus("Đã xóa các điểm nháp.", "#aaa");
+    }
+
+    function saveAllDraftWaypoints() {
+        if (draftWaypoints.length === 0) return alert("⚠️ Bạn chưa chấm điểm nào trên Bản đồ!");
+
+        draftWaypoints.forEach((wp) => {
+            var color = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            var finalWp = { x: wp.x, y: wp.y, yaw: wp.yaw, name: wp.name, color: color, isCustom: true };
+            
+            squareWaypoints.push(finalWp);
+            buildWaypointUI(finalWp); 
+        });
+
+        // LƯU VÀO TRÌNH DUYỆT (LOCAL STORAGE)
+        localStorage.setItem("agv_saved_waypoints", JSON.stringify(squareWaypoints));
+
+        clearDraftPoints();
+        if (isMultiWpMode) toggleMultiWaypointMode(); 
+        updateStatus("✅ Đã lưu vĩnh viễn các điểm vào Hệ thống FMS!", "#27ae60");
+    }
+
+    function buildWaypointUI(wp) {
+        // Vẽ lên map thật
+        if (typeof waypointsShape !== 'undefined' && waypointsShape) {
+            var marker = new createjs.Shape(); 
+            marker.graphics.beginFill(wp.color).drawCircle(0, 0, 0.08); 
+            marker.graphics.beginFill("#ffffff").drawCircle(0, 0, 0.03); 
+            marker.x = wp.x; marker.y = -wp.y;
+            waypointsShape.addChild(marker);
+        }
+        // Vẽ lên map FMS đồng thời
+        if (typeof simWaypointsShape !== 'undefined' && simWaypointsShape) {
+            var markerSim = new createjs.Shape(); 
+            markerSim.graphics.beginFill(wp.color).drawCircle(0, 0, 0.08); 
+            markerSim.graphics.beginFill("#ffffff").drawCircle(0, 0, 0.03); 
+            markerSim.x = wp.x; markerSim.y = -wp.y;
+            simWaypointsShape.addChild(markerSim);
+        }
+
+        // Tạo nút điều khiển cho robot thật
+        var btn = document.createElement("button");
+        btn.className = "btn-waypoint"; 
+        btn.style.backgroundColor = wp.color; 
+        btn.style.border = "2px dashed #fff";
+        btn.innerHTML = `📦 CHẠY ĐẾN: ${wp.name}`;
+        btn.onclick = function() { sendGoal(wp.x, wp.y, wp.yaw); };
+        document.getElementById('dynamic-waypoints-list').appendChild(btn);
+
+        // Nạp vào FMS Dropdown (AI và Manual)
+        if(document.getElementById('order-dest')) document.getElementById('order-dest').innerHTML += `<option value="${wp.name}">${wp.name}</option>`;
+        if(document.getElementById('ai-order-dest')) document.getElementById('ai-order-dest').innerHTML += `<option value="${wp.name}">${wp.name}</option>`;
+    }
+
+    function clearAllSavedWaypoints() {
+        if(confirm("⚠️ Bạn có chắc chắn muốn XÓA TOÀN BỘ các điểm đã lưu không?")) {
+            localStorage.removeItem("agv_saved_waypoints");
+            location.reload(); 
+        }
+    }
+
+    // KHÔI PHỤC DỮ LIỆU KHI MỞ LẠI WEB
+    window.addEventListener('load', function() {
+        var savedData = localStorage.getItem("agv_saved_waypoints");
+        if (savedData) {
+            var parsedWps = JSON.parse(savedData);
+            // Đợi map load xong mới vẽ
+            setTimeout(() => {
+                parsedWps.forEach(wp => {
+                    squareWaypoints.push(wp);
+                    buildWaypointUI(wp);
+                });
+            }, 1500); 
+        }
+    });
+
+
+    // ==========================================================
+    // LẤY MÃ QR VÀ MỞ KHÓA (INTERLOCK SYSTEM)
+    // ==========================================================
+    setInterval(() => {
+        fetch('http://' + ip + ':5000/get_qr')
+            .then(response => response.json())
+            .then(data => {
+                if (data.data && data.data !== "") {
+                    console.log("🔥 Bắt được mã từ API:", data.data);
+                    processQRData(data.data);
+                    
+                    if (waitingForQR) {
+                        waitingForQR = false; 
+                        
+                        if (isSquareTesting) {
+                            squarePointIndex++;
+                            if (squarePointIndex >= squareWaypoints.length) { squarePointIndex = 0; squareLoopCount++; }
+                            
+                            if (squareLoopCount < maxSquareLoops) {
+                                var nextPoint = squareWaypoints[squarePointIndex];
+                                updateStatus(`🔓 Đã quét QR. Vòng ${squareLoopCount + 1}/4 - Tiến về Điểm ${nextPoint.name}...`, "#e84393");
+                                setTimeout(() => { if (isSquareTesting) sendGoal(nextPoint.x, nextPoint.y, nextPoint.yaw, true); }, 1500);
+                            } else {
+                                isSquareTesting = false; updateStatus("🎉 HOÀN THÀNH: Chạy xong 4 vòng Square Test!", "#27ae60");
+                            }
+                        } else {
+                            updateStatus("🔓 Đã xác nhận QR! Khóa an toàn được mở, sẵn sàng nhận lệnh mới.", "#27ae60");
+                        }
+                    }
+                }
+            })
+            .catch(error => {});
+    }, 1000); 
+
+    function processQRData(scannedText) {
+        var qrBox = document.getElementById('qr-result-box');
+        var qrList = document.getElementById('qr-list');
+        
+        qrBox.innerHTML = "<b>PHÁT HIỆN MÃ:</b><br>" + scannedText;
+        qrBox.style.color = "#27ae60"; 
+        qrBox.style.borderColor = "#27ae60";
+        qrBox.style.backgroundColor = "rgba(39, 174, 96, 0.1)";
+        qrBox.style.borderStyle = "solid";
+
+        var now = new Date();
+        var timeStr = now.getHours().toString().padStart(2, '0') + ":" + 
+                      now.getMinutes().toString().padStart(2, '0') + ":" + 
+                      now.getSeconds().toString().padStart(2, '0');
+        var li = document.createElement("li");
+        li.className = "qr-list-item";
+        li.innerHTML = "<span class='qr-time'>[" + timeStr + "]</span> <span class='qr-data'>" + scannedText + "</span>";
+        qrList.insertBefore(li, qrList.firstChild);
+
+        if(!waitingForQR) {
+            updateStatus("📦 Lưu thành công kiện hàng: " + scannedText, "#f1c40f");
+        }
+
+        setTimeout(() => {
+            qrBox.style.color = "#aaa";
+            qrBox.style.borderColor = "#555";
+            qrBox.style.backgroundColor = "var(--dark-grey)";
+            qrBox.style.borderStyle = "dashed";
+            qrBox.innerHTML = "Đang chờ quét kiện hàng tiếp theo...";
+        }, 3000);
+    }
+
+
     // --- LỆNH DI CHUYỂN TỰ ĐỘNG ---
     function setInitialPose() {
+        waitingForQR = false; 
         var topic = new ROSLIB.Topic({ ros: ros, name: '/initialpose', messageType: 'geometry_msgs/PoseWithCovarianceStamped' });
         var pose = new ROSLIB.Message({ header: { frame_id: 'map' }, pose: { pose: { position: { x: HOME_X, y: HOME_Y, z: 0.0 }, orientation: { x: 0.0, y: 0.0, z: HOME_QZ, w: HOME_QW } }, covariance: [0.05, 0, 0, 0, 0, 0,  0, 0.05, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0.05] } });
         topic.publish(pose);
-        updateStatus(`📍 Đã nạp tọa độ HOME cho AGV 1. Sẵn sàng!`, "#e67e22");
+        updateStatus(`📍 Đã nạp tọa độ HOME cho AGV . Sẵn sàng!`, "#e67e22");
     }
 
     var isNavigating = false; var isSquareTesting = false; var squareLoopCount = 0; var squarePointIndex = 0; const maxSquareLoops = 4;
-    const squareWaypoints = [
-        { x: -0.546, y: -0.512, yaw: -1.57, name: "A", color: "#9b59b6" }, { x: 0.997, y: -0.417, yaw: 0.0, name: "B", color: "#9b59b6" },
-        { x: 1.010, y: 0.278, yaw: 1.57, name: "C", color: "#9b59b6" }, { x: -0.534, y: 0.278, yaw: 3.14159, name: "D", color: "#9b59b6" }
-    ];
 
     function sendGoal(targetX, targetY, targetYaw, isAutoLoop = false) {
+        if (waitingForQR) {
+            alert("⚠️ KHÓA AN TOÀN: Vui lòng quét mã QR xác nhận tại trạm hiện tại trước khi di chuyển tiếp!");
+            return;
+        }
+
         var topic = new ROSLIB.Topic({ ros: ros, name: '/goal_pose', messageType: 'geometry_msgs/PoseStamped' });
         var qz = Math.sin(targetYaw/2); var qw = Math.cos(targetYaw/2);
         topic.publish(new ROSLIB.Message({ header: { frame_id: 'map' }, pose: { position: { x: targetX, y: targetY, z: 0.0 }, orientation: { x: 0.0, y: 0.0, z: qz, w: qw } } }));
         isNavigating = true;
-        if (!isAutoLoop) { isSquareTesting = false; updateStatus(`🚀 AGV 1 đang tự động di chuyển đến mục tiêu...`, "#3498db"); }
+        if (!isAutoLoop) { isSquareTesting = false; updateStatus(`🚀 AGV đang tự động di chuyển đến mục tiêu...`, "#3498db"); }
     }
 
     function startSquareTest() {
+        if (waitingForQR) { alert("⚠️ KHÓA AN TOÀN: Vui lòng quét mã QR xác nhận trước khi bắt đầu chu trình!"); return; }
         if (isNavigating) { alert("⚠️ Robot đang bận di chuyển."); return; }
+        if (squareWaypoints.length === 0) { alert("⚠️ Chưa có điểm Kệ hàng nào. Vui lòng chấm điểm và lưu lại trước khi chạy test!"); return; }
+
         isSquareTesting = true; squareLoopCount = 0; squarePointIndex = 0;
-        updateStatus("🔄 Square Test (Vòng 1/4) - Đang tiến về Điểm A...", "#e84393");
+        updateStatus(`🔄 Bắt đầu chạy vòng lặp - Đang tiến về Điểm [${squareWaypoints[0].name}]...`, "#e84393");
         sendGoal(squareWaypoints[0].x, squareWaypoints[0].y, squareWaypoints[0].yaw, true);
     }
 
     var moveInterval;
     
-    // DỪNG KHẨN CẤP
     function emergencyStop() {
-        isNavigating = false; isSquareTesting = false;
+        isNavigating = false; isSquareTesting = false; waitingForQR = false;
         if (moveInterval) clearInterval(moveInterval);
         
         var cmdMaster = new ROSLIB.Topic({ ros: ros, name: '/cmd_vel', messageType: 'geometry_msgs/Twist' });
@@ -202,12 +481,11 @@
         var cancelM = new ROSLIB.Service({ ros: ros, name: '/navigate_to_pose/_action/cancel_goal', serviceType: 'action_msgs/srv/CancelGoal' });
         cancelM.callService(cancelRequest, function() {}); 
         
-        if (pathShape) pathShape.graphics.clear();
+        if (typeof pathShape !== 'undefined' && pathShape) pathShape.graphics.clear();
         updateStatus("🚨 E-STOP: ĐÃ HỦY LỆNH & KHÓA BÁNH ROBOT!", "#c0392b");
         document.body.classList.add('shake-active'); setTimeout(() => { document.body.classList.remove('shake-active'); }, 400);
     }
 
-    // Theo dõi Goal Status
     var navStatusTopic = new ROSLIB.Topic({ ros: ros, name: '/navigate_to_pose/_action/status', messageType: 'action_msgs/msg/GoalStatusArray' });
     navStatusTopic.subscribe(function(message) {
         if (!isNavigating && !isSquareTesting) return;
@@ -215,27 +493,24 @@
         var latest_status = message.status_list[message.status_list.length - 1].status;
         
         if (latest_status === 4) { 
-            isNavigating = false; if(pathShape) pathShape.graphics.clear();
+            isNavigating = false; if(typeof pathShape !== 'undefined' && pathShape) pathShape.graphics.clear();
+            waitingForQR = true;
+
             if (isSquareTesting) {
-                squarePointIndex++;
-                if (squarePointIndex >= squareWaypoints.length) { squarePointIndex = 0; squareLoopCount++; }
-                if (squareLoopCount < maxSquareLoops) {
-                    var nextPoint = squareWaypoints[squarePointIndex];
-                    updateStatus(`✅ Đã tới điểm. Vòng ${squareLoopCount + 1}/4 - Tiến về Điểm ${nextPoint.name}...`, "#e84393");
-                    setTimeout(() => { if (isSquareTesting) sendGoal(nextPoint.x, nextPoint.y, nextPoint.yaw, true); }, 1500);
-                } else {
-                    isSquareTesting = false; updateStatus("🎉 HOÀN THÀNH: Chạy xong 4 vòng Square Test!", "#27ae60");
-                }
-            } else { updateStatus("✅ Robot đã đến điểm đích thành công!", "#27ae60"); }
+                var currentPointName = squareWaypoints[squarePointIndex].name;
+                updateStatus(`📍 Tới Điểm ${currentPointName}. VUI LÒNG QUÉT MÃ QR ĐỂ CHẠY TIẾP ĐIỂM SAU!`, "#f39c12");
+            } else { 
+                updateStatus("✅ Đã tới điểm! VUI LÒNG QUÉT MÃ QR ĐỂ MỞ KHÓA DI CHUYỂN.", "#f39c12"); 
+            }
         } else if (latest_status === 6) { 
-            isNavigating = false; isSquareTesting = false; if(pathShape) pathShape.graphics.clear();
+            isNavigating = false; isSquareTesting = false; if(typeof pathShape !== 'undefined' && pathShape) pathShape.graphics.clear();
             updateStatus("❌ Lỗi: Bị kẹt hoặc không tìm thấy đường đi!", "#e74c3c"); 
         }
     });
 
     // --- VIRTUAL JOYSTICK ---
     var teleopInterval = null; var joyLinear = 0.0; var joyAngular = 0.0;
-    const MAX_LIN_SPEED = 0.20; const MAX_ANG_SPEED = 0.8; 
+    const MAX_LIN_SPEED = 0.1; const MAX_ANG_SPEED = 0.5; 
 
     function initJoystick() {
         var joystickZone = document.getElementById('joystick-zone');
@@ -243,14 +518,19 @@
         var joystickManager = nipplejs.create({ zone: joystickZone, mode: 'static', position: { left: '50%', top: '50%' }, color: '#3498db', size: 140 });
 
         joystickManager.on('move', function (evt, data) {
-            isNavigating = false; isSquareTesting = false; if(pathShape) pathShape.graphics.clear();
+            if (waitingForQR) {
+                updateStatus("⚠️ KHÓA AN TOÀN: Hãy quét mã QR trước khi lái thủ công!", "#e74c3c");
+                return;
+            }
+
+            isNavigating = false; isSquareTesting = false; if(typeof pathShape !== 'undefined' && pathShape) pathShape.graphics.clear();
             var distance = data.distance; var angleRad = data.angle.radian;
             var speedRatio = distance / 70.0; if(speedRatio > 1.0) speedRatio = 1.0;
             joyLinear = Math.sin(angleRad) * speedRatio * MAX_LIN_SPEED;
             joyAngular = Math.cos(angleRad) * speedRatio * MAX_ANG_SPEED;
 
             if (!teleopInterval) {
-                updateStatus(`🎮 Đang lái AGV 1 bằng Joystick...`, "#8e44ad");
+                updateStatus(`🎮 Đang lái AGV bằng Joystick...`, "#8e44ad");
                 var cmdTopic = new ROSLIB.Topic({ ros: ros, name: '/cmd_vel', messageType: 'geometry_msgs/Twist' });
                 teleopInterval = setInterval(() => { cmdTopic.publish(new ROSLIB.Message({ linear: { x: joyLinear, y: 0, z: 0 }, angular: { x: 0, y: 0, z: joyAngular } })); }, 50); 
             }
@@ -260,17 +540,18 @@
             if (teleopInterval) { clearInterval(teleopInterval); teleopInterval = null; }
             var cmdTopic = new ROSLIB.Topic({ ros: ros, name: '/cmd_vel', messageType: 'geometry_msgs/Twist' });
             cmdTopic.publish(new ROSLIB.Message({ linear: { x: 0, y: 0, z: 0 }, angular: { x: 0, y: 0, z: 0 } }));
-            updateStatus("⏹️ Robot đã dừng.", "#e74c3c");
+            if(!waitingForQR) updateStatus("⏹️ Robot đã dừng.", "#e74c3c");
         });
     }
 
     function startTestMove() { 
+        if (waitingForQR) { alert("⚠️ KHÓA AN TOÀN đang bật!"); return; }
         var speed = parseFloat(document.getElementById('test-speed').value); 
         if (!isNaN(speed)) {
-            isNavigating = false; isSquareTesting = false; if(pathShape) pathShape.graphics.clear();
+            isNavigating = false; isSquareTesting = false; if(typeof pathShape !== 'undefined' && pathShape) pathShape.graphics.clear();
             if (moveInterval) clearInterval(moveInterval);
             var cmdTopic = new ROSLIB.Topic({ ros: ros, name: '/cmd_vel', messageType: 'geometry_msgs/Twist' });
-            updateStatus(`🎮 Đang test chạy thẳng AGV 1...`, "#8e44ad");
+            updateStatus(`🎮 Đang test chạy thẳng AGV ...`, "#8e44ad");
             moveInterval = setInterval(() => { cmdTopic.publish(new ROSLIB.Message({ linear: { x: speed, y: 0, z: 0 }, angular: { x: 0, y: 0, z: 0 } })); }, 100);
         }
     }
@@ -278,7 +559,7 @@
         if (moveInterval) { clearInterval(moveInterval); moveInterval = null; }
         var cmdTopic = new ROSLIB.Topic({ ros: ros, name: '/cmd_vel', messageType: 'geometry_msgs/Twist' });
         cmdTopic.publish(new ROSLIB.Message({ linear: { x: 0, y: 0, z: 0 }, angular: { x: 0, y: 0, z: 0 } })); 
-        updateStatus("⏹️ Robot đã dừng.", "#e74c3c");
+        if(!waitingForQR) updateStatus("⏹️ Robot đã dừng.", "#e74c3c");
     }
 
     var imuTopic = new ROSLIB.Topic({ ros: ros, name: '/imu/data', messageType: 'sensor_msgs/msg/Imu' });
@@ -307,20 +588,40 @@
     setInterval(() => { chartLeft.data.datasets[0].data.shift(); chartLeft.data.datasets[0].data.push(tar_l); chartLeft.data.datasets[1].data.shift(); chartLeft.data.datasets[1].data.push(act_l); chartLeft.update(); chartRight.data.datasets[0].data.shift(); chartRight.data.datasets[0].data.push(tar_r); chartRight.data.datasets[1].data.shift(); chartRight.data.datasets[1].data.push(act_r); chartRight.update(); }, 100);
 
     // ==========================================================
-    // --- VẼ BẢN ĐỒ VÀ ROBOT ---
+    // --- VẼ BẢN ĐỒ VÀ ROBOT THỰC TẾ ---
     // ==========================================================
     var mapViewer, robotMarker1, laserScanShape, pathShape, waypointsShape;
     var currentRobotX = null, currentRobotY = null, currentRobotYaw = null;
 
     function createRobotShape(primaryColor) {
         var marker = new createjs.Container();
-        var base = new createjs.Shape(); base.graphics.beginFill("#34495e").drawRoundRect(-0.14, -0.15, 0.28, 0.30, 0.02);
+        
+        // Thân xe giữ cố định màu xám đen
+        var base = new createjs.Shape(); 
+        base.graphics.beginFill("#34495e").drawRoundRect(-0.14, -0.15, 0.28, 0.30, 0.02);
+        
         var wheelL = new createjs.Shape(); wheelL.graphics.beginFill("#000000").drawRect(-0.06, -0.18, 0.12, 0.04);
         var wheelR = new createjs.Shape(); wheelR.graphics.beginFill("#000000").drawRect(-0.06, 0.14, 0.12, 0.04);
-        var lidar = new createjs.Shape(); lidar.graphics.beginFill("#111111").drawCircle(-0.04, 0, 0.045); lidar.graphics.beginFill(primaryColor).drawCircle(-0.04, 0, 0.015);
-        var dirArrow = new createjs.Shape(); dirArrow.graphics.beginFill(primaryColor).moveTo(0.04, -0.05).lineTo(0.16, 0).lineTo(0.04, 0.05).closePath();
-        marker.addChild(base, wheelL, wheelR, lidar, dirArrow);
+        
+        // LiDAR và Mũi xe lấy màu primaryColor để phân biệt
+        var lidar = new createjs.Shape(); 
+        lidar.graphics.beginFill("#111111").drawCircle(-0.04, 0, 0.045); 
+        lidar.graphics.beginFill(primaryColor).drawCircle(-0.04, 0, 0.015);
+        var dirArrow = new createjs.Shape(); 
+        dirArrow.graphics.beginFill(primaryColor).moveTo(0.04, -0.05).lineTo(0.16, 0).lineTo(0.04, 0.05).closePath();
+        
+        // Khối hàng chở trên lưng (ẩn đi ban đầu)
+        var payloadShape = new createjs.Shape(); 
+        payloadShape.graphics.beginFill("#e67e22").drawRoundRect(-0.07, -0.1, 0.14, 0.14, 0.02);
+        payloadShape.graphics.beginStroke("#fff").setStrokeStyle(0.01).drawRoundRect(-0.07, -0.1, 0.14, 0.14, 0.02);
+        payloadShape.visible = false;
+        
+        marker.addChild(base, wheelL, wheelR, payloadShape, lidar, dirArrow); 
+        marker.payloadShape = payloadShape; 
         marker.visible = false; 
+        
+        // Thêm một thuộc tính lưu tham chiếu đến hình chữ nhật base để lát nữa đổi màu
+        marker.baseShape = base; 
         return marker;
     }
 
@@ -332,14 +633,40 @@
             mapViewer.scaleToDimensions(gridClient.currentGrid.width, gridClient.currentGrid.height);
             mapViewer.shift(gridClient.currentGrid.pose.position.x, gridClient.currentGrid.pose.position.y);
         });
+        
+        draftShapes = new createjs.Container();
+        mapViewer.scene.addChild(draftShapes);
 
         waypointsShape = new createjs.Container();
-        let allPoints = [...squareWaypoints, { x: HOME_X, y: HOME_Y, yaw: HOME_YAW, color: "#27ae60" }];
-        allPoints.forEach(wp => {
-            var marker = new createjs.Shape(); marker.graphics.beginFill(wp.color).drawCircle(0, 0, 0.08); marker.graphics.beginFill("#ffffff").drawCircle(0, 0, 0.03); marker.x = wp.x; marker.y = -wp.y; 
-            waypointsShape.addChild(marker);
-        });
         mapViewer.scene.addChild(waypointsShape);
+
+        // Lắng nghe click chuột ĐỂ CHẤM ĐIỂM
+        mapViewer.scene.addEventListener('stagemousedown', function(event) {
+            if (!isMultiWpMode) return; 
+
+            var rosX = event.localX; 
+            var rosY = -event.localY; 
+            
+            var defaultName = "Kệ " + (squareWaypoints.length + draftWaypoints.length + 1);
+            var wpName = prompt("Nhập tên cho vị trí này:", defaultName);
+            if (wpName === null || wpName.trim() === "") return; 
+
+            draftWaypoints.push({ x: rosX, y: rosY, yaw: 0.0, name: wpName.trim() });
+            
+            var marker = new createjs.Shape();
+            marker.graphics.beginFill("#aaa").drawCircle(0, 0, 0.08);
+            marker.x = rosX; marker.y = -rosY;
+            draftShapes.addChild(marker);
+
+            if (typeof simDraftShapes !== 'undefined' && simDraftShapes) {
+                var simMarker = new createjs.Shape();
+                simMarker.graphics.beginFill("#aaa").drawCircle(0, 0, 0.08);
+                simMarker.x = rosX; simMarker.y = -rosY;
+                simDraftShapes.addChild(simMarker);
+            }
+            
+            updateStatus(`📍 Đã chấm điểm [${wpName}]. Tiếp tục chấm hoặc bấm LƯU TẤT CẢ!`, "#f39c12");
+        });
 
         pathShape = new createjs.Shape(); mapViewer.scene.addChild(pathShape);
         var planTopic = new ROSLIB.Topic({ ros: ros, name: '/plan', messageType: 'nav_msgs/msg/Path' });
@@ -355,10 +682,9 @@
 
         laserScanShape = new createjs.Shape(); mapViewer.scene.addChild(laserScanShape);
 
-        robotMarker1 = createRobotShape("#f1c40f"); // Vàng cho Master
+        robotMarker1 = createRobotShape("#f1c40f"); 
         mapViewer.scene.addChild(robotMarker1);
 
-        // Theo dõi tọa độ AGV 1
         var poseTopic1 = new ROSLIB.Topic({ ros: ros, name: '/amcl_pose', messageType: 'geometry_msgs/PoseWithCovarianceStamped' });
         poseTopic1.subscribe(function(message) {
             currentRobotX = message.pose.pose.position.x; currentRobotY = message.pose.pose.position.y; 
@@ -366,7 +692,6 @@
             robotMarker1.visible = true; robotMarker1.x = currentRobotX; robotMarker1.y = -currentRobotY; robotMarker1.rotation = -currentRobotYaw * (180.0 / Math.PI); 
         });
 
-        // Hiển thị tia Laser
         var scanTopic = new ROSLIB.Topic({ ros: ros, name: '/scan', messageType: 'sensor_msgs/msg/LaserScan' });
         scanTopic.subscribe(function(message) {
             if (currentRobotX === null) return; 
@@ -380,401 +705,387 @@
             }
         });
     }
+
+    // ==========================================================
+    // HỆ THỐNG MÔ PHỎNG FMS (FLEET MANAGEMENT SYSTEM)
+    // ==========================================================
+    var simViewer, simGridClient, simRobotLayer, simWaypointsShape, simDraftShapes;
+    var virtualRobots = []; 
+
+    function initSimMap() {
+        if (simViewer) return;
+        simViewer = new ROS2D.Viewer({ divID: 'sim-map', width: 1100, height: 750 });
+        simGridClient = new ROS2D.OccupancyGridClient({ ros: ros, rootObject: simViewer.scene, continuous: true });
+        
+        simWaypointsShape = new createjs.Container();
+        simViewer.scene.addChild(simWaypointsShape);
+
+        simDraftShapes = new createjs.Container();
+        simViewer.scene.addChild(simDraftShapes);
+
+        simRobotLayer = new createjs.Container();
+        simViewer.scene.addChild(simRobotLayer);
+
+        simGridClient.on('change', function() {
+            simViewer.scaleToDimensions(simGridClient.currentGrid.width, simGridClient.currentGrid.height);
+            simViewer.shift(simGridClient.currentGrid.pose.position.x, simGridClient.currentGrid.pose.position.y);
+        });
+    }
+
+    function spawnRobots() {
+        initSimMap(); 
+        
+        const count = document.getElementById('robot-count').value;
+        const statusList = document.getElementById('sim-status-list');
+        
+        simRobotLayer.removeAllChildren();
+        virtualRobots = [];
+        statusList.innerHTML = "";
+
+        for (let i = 1; i <= count; i++) {
+            const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            
+            let robotShape = createRobotShape(randomColor);
+            robotShape.baseShape.graphics.clear().beginFill(randomColor).drawRoundRect(-0.14, -0.15, 0.28, 0.30, 0.02);
+            robotShape.scaleX = 0.5;
+            robotShape.scaleY = 0.5;
+            
+            let offsetX = (Math.random() * 0.4) - 0.2;
+            let offsetY = (Math.random() * 0.4) - 0.2;
+            
+            robotShape.x = HOME_X + offsetX;
+            robotShape.y = -(HOME_Y + offsetY);
+            robotShape.rotation = -HOME_YAW * (180 / Math.PI) + (Math.random()*90 - 45);
+            robotShape.visible = true;
+
+            let pathShape = new createjs.Shape();
+            simViewer.scene.addChild(pathShape); 
+
+            let robotData = {
+                id: i,
+                name: "AGV_" + i,
+                color: randomColor, 
+                shape: robotShape,
+                pathShape: pathShape, 
+                status: "IDLE (Rảnh)",
+                posX: robotShape.x,
+                posY: -robotShape.y,
+                taskQueue: [],
+                battery: 100,  
+                kpi: 0         
+            };
+
+            virtualRobots.push(robotData); 
+            simRobotLayer.addChild(robotShape);
+        }
+        
+        updateStatus(`🚀 Đã khởi tạo thành công ${count} Robot ảo trong mô phỏng!`, "#9b59b6");
+        
+        let robotSelect = document.getElementById('order-robot');
+        robotSelect.innerHTML = '<option value="">-- Chọn Xe --</option>'; 
+        virtualRobots.forEach(r => {
+            robotSelect.innerHTML += `<option value="${r.id}">${r.name}</option>`;
+        });
+        
+        updateSimStatusUI();
+    }
+    
+    createjs.Ticker.framerate = 30;
+    createjs.Ticker.addEventListener("tick", () => {
+        if (simRobotLayer && simRobotLayer.getStage()) {
+            simRobotLayer.getStage().update();
+        }
+    });
+
+    var taskQueue = []; 
+    var dispatcherInterval = null; 
+
+    function assignTask() {
+        let robotId = document.getElementById('order-robot').value;
+        let destVal = document.getElementById('order-dest').value;
+
+        if (!robotId) return alert("⚠️ Vui lòng chọn một xe!");
+
+        let robot = virtualRobots.find(r => r.id == robotId);
+        if (!robot) return;
+
+        let targetX, targetY, targetName;
+        if (destVal === "HOME") { targetX = HOME_X; targetY = HOME_Y; targetName = "Trạm Sạc"; }
+        else {
+            let wp = squareWaypoints.find(w => w.name === destVal);
+            if(wp){
+                targetX = wp.x; targetY = wp.y; targetName = wp.name;
+            } else {
+                return alert("Chưa có tạo độ điểm này!");
+            }
+        }
+
+        robot.taskQueue.push({ targetX: targetX, targetY: targetY, targetName: targetName });
+        updatePendingUI();
+        updateStatus(`📌 Đã gán thủ công ${robot.name} đi ${targetName}`, "#3498db");
+    }
+
+    function assignTaskByAI() {
+        let destVal = document.getElementById('ai-order-dest').value;
+        let targetX, targetY, targetName;
+
+        if (destVal === "HOME") { targetX = HOME_X; targetY = HOME_Y; targetName = "Trạm Sạc"; }
+        else {
+            let wp = squareWaypoints.find(w => w.name === destVal);
+            if(wp){
+                 targetX = wp.x; targetY = wp.y; targetName = wp.name;
+            } else {
+                return alert("Chưa có tạo độ điểm này!");
+            }
+        }
+
+        let bestRobot = null;
+        let maxReward = -Infinity; 
+
+        virtualRobots.forEach(robot => {
+            let startX = robot.shape.x;
+            let startY = -robot.shape.y;
+            if (robot.taskQueue.length > 0) {
+                let lastTask = robot.taskQueue[robot.taskQueue.length - 1];
+                startX = lastTask.targetX;
+                startY = lastTask.targetY;
+            }
+
+            let dx = targetX - startX;
+            let dy = targetY - startY;
+            let pathLength = Math.sqrt(dx*dx + dy*dy); 
+            
+            let reward = pathLength > 0.05 ? (100.0 / pathLength) : 100.0;
+            if (robot.battery < 20) reward = -1; 
+            reward = reward - (robot.taskQueue.length * 20); 
+
+            if (reward > maxReward) {
+                maxReward = reward;
+                bestRobot = robot;
+            }
+        });
+
+        if (bestRobot) {
+            bestRobot.taskQueue.push({ targetX: targetX, targetY: targetY, targetName: targetName });
+            updatePendingUI();
+            updateStatus(`🧠 AI đã chọn ${bestRobot.name}`, "#e84393");
+        } else {
+            alert("⚠️ AI không tìm thấy xe nào đủ điều kiện!");
+        }
+    }
+
+    function updatePendingUI() {
+        let pList = document.getElementById('sim-pending-list');
+        pList.innerHTML = "";
+        let hasTasks = false;
+
+        virtualRobots.forEach(robot => {
+            if (robot.taskQueue.length > 0) {
+                hasTasks = true;
+                let pathStr = robot.taskQueue.map(t => t.targetName).join(" ➡️ ");
+                pList.innerHTML += `
+                    <div style="background: #3498db; color: white; padding: 6px 12px; border-radius: 4px; margin-bottom: 5px; font-weight: bold; font-size: 0.9em; display: flex; justify-content: space-between; align-items: center;">
+                        <span>🤖 ${robot.name}: ${pathStr}</span>
+                        <span style="cursor: pointer; color: #ffcccc; font-size: 1.2em;" onclick="clearRobotTasks(${robot.id})" title="Xóa chuỗi lệnh này">❌</span>
+                    </div>`;
+            }
+        });
+
+        if (!hasTasks) {
+            pList.innerHTML = '<span style="color: #888; font-size: 0.9em;">Chưa có lệnh nào được gán...</span>';
+        }
+    }
+
+    function clearRobotTasks(robotId) {
+        let robot = virtualRobots.find(r => r.id == robotId);
+        if(robot) robot.taskQueue = [];
+        updatePendingUI();
+    }
+
+    function executeAllTasks() {
+        let hasTasks = virtualRobots.some(r => r.taskQueue.length > 0);
+        if (!hasTasks) return alert("⚠️ Không có lệnh nào trong danh sách chờ để chạy!");
+
+        virtualRobots.forEach(robot => {
+            if (robot.taskQueue.length > 0 && !robot.isMoving) {
+                processNextTask(robot);
+            }
+        });
+        
+        updatePendingUI(); 
+    }
+
+    function processNextTask(robot) {
+        if (robot.taskQueue.length === 0) {
+            robot.isMoving = false;
+            robot.status = "IDLE (Rảnh)";
+            updateSimStatusUI();
+            return;
+        }
+
+        robot.isMoving = true;
+        let nextTask = robot.taskQueue[0]; 
+        robot.status = `ĐANG TỚI ${nextTask.targetName}`;
+        updateSimStatusUI();
+
+        simulateMovement(robot, nextTask.targetX, nextTask.targetY, nextTask.targetName);
+    }
+
+    // 6. Mô phỏng di chuyển và vẽ đường dích dắc (TÍCH HỢP TRƯỜNG LỰC ĐẨY NÉ NHAU)
+    function simulateMovement(robot, targetX, targetY, targetName) {
+        let speed = 0.005;
+
+        // Vẽ đường hướng dẫn ban đầu
+        robot.pathShape.graphics.clear().setStrokeStyle(0.06, "round").beginStroke(robot.color).moveTo(robot.shape.x, robot.shape.y);
+        robot.pathShape.graphics.lineTo(targetX, -targetY);
+        for (let i = 1; i < robot.taskQueue.length; i++) {
+            robot.pathShape.graphics.lineTo(robot.taskQueue[i].targetX, -robot.taskQueue[i].targetY);
+        }
+        robot.pathShape.graphics.endStroke();
+        robot.pathShape.alpha = 1.0;
+
+        robot.moveTimer = setInterval(() => {
+            
+            // Logic Tụt Pin
+            if(robot.battery > 0) robot.battery -= 0.05; 
+            robot.tickCount = (robot.tickCount || 0) + 1;
+            if(robot.tickCount % 10 === 0) updateSimStatusUI(); 
+
+            let dx = targetX - robot.shape.x;
+            let dy = (-targetY) - robot.shape.y;
+            let distanceToTarget = Math.sqrt(dx*dx + dy*dy);
+
+            // ======================================================
+            // 1. RADAR LỰC ĐẨY (LÁCH QUA NHAU THAY VÌ ĐI XUYÊN)
+            // ======================================================
+            let avoidX = 0; let avoidY = 0;
+            let isDestinationBlocked = false;
+
+            for (let j = 0; j < virtualRobots.length; j++) {
+                let other = virtualRobots[j];
+                if (other.id !== robot.id) {
+                    let distX = robot.shape.x - other.shape.x;
+                    let distY = robot.shape.y - other.shape.y;
+                    let dist = Math.sqrt(distX*distX + distY*distY);
+                    
+                    if (dist < 0.45 && dist > 0) { // Bán kính radar 0.28m
+                        // Tính lực văng ra (càng gần thì lực đẩy lách ra càng mạnh)
+                        let force = (0.45 - dist) / 0.45; 
+                        let pushAngle = Math.atan2(distY, distX);
+                        avoidX += Math.cos(pushAngle) * force * 0.010;
+                        avoidY += Math.sin(pushAngle) * force * 0.010;
+
+                        // Cảm biến xem xe kia có đang đỗ chình ình ngay đích của mình không
+                        let otherToTarget = Math.sqrt(Math.pow(other.shape.x - targetX, 2) + Math.pow(other.shape.y - (-targetY), 2));
+                        if (!other.isMoving && otherToTarget < 0.20) {
+                            isDestinationBlocked = true;
+                        }
+                    }
+                }
+            }
+
+            // ======================================================
+            // 2. CẢM BIẾN TỚI ĐÍCH & TỰ ĐỘNG XẾP HÀNG CHỜ
+            // ======================================================
+            // Dừng lại hoàn thành lệnh nếu: Tới đúng tâm (<0.03m) 
+            // HOẶC đích đã bị chiếm chỗ và mình đã tấp vào sát xe kia (<0.25m)
+            if (distanceToTarget < 0.03 || (distanceToTarget < 0.35 && isDestinationBlocked)) {
+                clearInterval(robot.moveTimer);
+                
+                robot.status = `ĐÃ TỚI ${targetName}`;
+                robot.pathShape.graphics.clear(); 
+                
+                if (targetName.includes("Sạc") || targetName.toUpperCase().includes("HOME")) {
+                    robot.shape.payloadShape.visible = false; 
+                    robot.battery = 100; 
+                } else {
+                    robot.shape.payloadShape.visible = true; 
+                    robot.kpi += 1; 
+                }
+                
+                updateSimStatusUI();
+                robot.taskQueue.shift(); 
+                
+                setTimeout(() => { processNextTask(robot); }, 1500);
+                return;
+            }
+
+            // ======================================================
+            // 3. DI CHUYỂN TỔNG HỢP (Hướng tới đích + Lực lách ra ngoài)
+            // ======================================================
+            let targetAngle = Math.atan2(dy, dx);
+            
+            // Cộng dồn vector tiến và vector lách
+            let moveX = (Math.cos(targetAngle) * speed) + avoidX;
+            let moveY = (Math.sin(targetAngle) * speed) + avoidY;
+
+            // Xoay đầu xe theo hướng thực tế đi
+            let finalAngle = Math.atan2(moveY, moveX);
+            robot.shape.rotation = finalAngle * (180 / Math.PI); 
+            robot.shape.x += moveX;
+            robot.shape.y += moveY;
+
+            // Rút ngắn dần đường vạch đỏ khi xe chạy
+            robot.pathShape.graphics.clear().setStrokeStyle(0.06, "round").beginStroke(robot.color).moveTo(robot.shape.x, robot.shape.y);
+            robot.pathShape.graphics.lineTo(targetX, -targetY);
+            for (let i = 1; i < robot.taskQueue.length; i++) {
+                robot.pathShape.graphics.lineTo(robot.taskQueue[i].targetX, -robot.taskQueue[i].targetY);
+            }
+            robot.pathShape.graphics.endStroke();
+
+        }, 30);
+    }
+    function updateSimStatusUI() {
+        const statusList = document.getElementById('sim-status-list');
+        statusList.innerHTML = "";
+        virtualRobots.forEach(robotData => {
+            let statusColor = robotData.status.includes("Rảnh") ? "#2ecc71" : "#f1c40f";
+            
+            let batColor = robotData.battery > 50 ? "#2ecc71" : (robotData.battery > 20 ? "#f39c12" : "#e74c3c");
+            
+            statusList.innerHTML += `
+                <div style="background: var(--panel); padding: 10px; margin-bottom: 8px; border-radius: 6px; border-left: 5px solid ${robotData.color}; box-shadow: 0 2px 4px rgba(0,0,0,0.4);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <span style="font-weight: bold; color: ${robotData.color}; font-size: 1.1em;">🤖 ${robotData.name}</span>
+                        <span style="font-size: 0.85em; color: ${statusColor}; font-weight:bold; background: rgba(0,0,0,0.3); padding: 3px 8px; border-radius: 4px;">${robotData.status}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85em; color: #ccc; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 5px;">
+                        <span>🔋 Pin: <span style="color: ${batColor}; font-weight: bold;">${Math.max(0, robotData.battery).toFixed(0)}%</span></span>
+                        <span>📦 Số Đơn: <b style="color: #3498db; font-size: 1.2em;">${robotData.kpi}</b></span>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function exportReportCSV() {
+        if (virtualRobots.length === 0) {
+            return alert("⚠️ Chưa có xe nào trong hệ thống để xuất báo cáo!");
+        }
+
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "ID,Ten_AGV,Trang_Thai_Hien_Tai,Pin_Con_Lai_%,So_Don_Hoan_Thanh\n";
+
+        virtualRobots.forEach(function(r) {
+            let bat = Math.max(0, r.battery).toFixed(0);
+            let row = `${r.id},${r.name},${r.status},${bat},${r.kpi}`;
+            csvContent += row + "\n";
+        });
+
+        var encodedUri = encodeURI(csvContent);
+        var link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        
+        let now = new Date();
+        let timeStr = now.getHours() + "h" + now.getMinutes() + "m_" + now.getDate() + "-" + (now.getMonth()+1);
+        link.setAttribute("download", "FMS_Report_" + timeStr + ".csv");
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        updateStatus("📥 Đã tải xuống file Báo cáo FMS thành công!", "#27ae60");
+    }
 </script>
 </body>
 </html>
-
-
-<!-- <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8" />
-    <title>AMR Control Center</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/eventemitter2@6/lib/eventemitter2.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <script src="https://code.createjs.com/1.0.0/easeljs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/ros2d@0/build/ros2d.min.js"></script>
-
-    <style>
-        :root {
-            --bg: #1a1a2e; --panel: #16213e; --blue: #0f3460; --light-blue: #3498db; 
-            --green: #27ae60; --orange: #e67e22; --red: #e74c3c; --text: #ecf0f1;
-            --purple: #9b59b6; --dark-grey: #2c3e50; --pink: #e84393;
-        }
-        body { 
-            font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); 
-            margin: 0; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 20px;
-        }
-        
-        .main-container { display: flex; gap: 20px; max-width: 95vw; width: 100%; flex-wrap: wrap; justify-content: center; }
-        .panel { background: var(--panel); padding: 25px 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); flex: 1; min-width: 350px; max-width: 420px; display: flex; flex-direction: column; }
-        
-        h2 { text-align: center; color: var(--light-blue); border-bottom: 2px solid var(--blue); padding-bottom: 15px; margin-top: 0; font-size: 1.3em;}
-        .section-title { font-size: 0.85em; color: #aaa; margin: 20px 0 10px 0; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; border-left: 3px solid var(--light-blue); padding-left: 10px;}
-        button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; font-size: 0.95em; transition: 0.2s; color: white; background: var(--blue); }
-        button:hover { filter: brightness(1.2); }
-        
-        /* Style cho nút E-STOP */
-        .btn-estop { background: #c0392b; color: white; font-size: 1.2em; border: 2px solid #ffcccc; box-shadow: 0 0 15px rgba(231, 76, 60, 0.6); text-transform: uppercase; padding: 15px; margin-bottom: 15px;}
-        .btn-estop:hover { background: #e74c3c; box-shadow: 0 0 25px rgba(231, 76, 60, 1);}
-        .btn-estop:active { transform: scale(0.95); }
-
-        .btn-home-set { background: var(--orange); } .btn-home-go { background: var(--green); } .btn-waypoint { background: var(--purple); } .btn-square { background: var(--pink); border: 2px dashed white; } .btn-pid { background: #f39c12; margin-top: 10px; }
-        .teleop-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
-        .btn-nav { background: var(--dark-grey); font-size: 1.2em; padding: 15px; } .btn-nav:active { background: var(--light-blue); }
-        
-        .imu-dashboard { display: flex; justify-content: space-between; background: var(--dark-grey); padding: 15px; border-radius: 8px; text-align: center; }
-        .imu-item { flex: 1; font-weight: bold; font-size: 0.9em; } .imu-value { font-size: 1.4em; font-family: monospace; color: var(--light-blue); display: block; margin-top: 5px; }
-        .pid-container { display: flex; gap: 10px; } .pid-container input { flex: 1; padding: 12px; border-radius: 6px; border: 1px solid var(--blue); font-size: 1em; text-align: center; font-weight: bold; background: var(--bg); color: white; }
-        
-        .test-pid-controls { display: flex; gap: 10px; margin-top: 10px; }
-        .test-speed-input { width: 80px; text-align: center; border-radius: 6px; border: 2px solid #10b981; background: var(--bg); color: white; font-weight: bold; font-size: 1.2em; }
-        .chart-wrapper { background: var(--bg); padding: 10px; border-radius: 8px; margin-top: 5px; border: 1px solid var(--dark-grey); height: 130px; position: relative;}
-        .chart-title { position: absolute; top: 5px; left: 15px; font-size: 0.75em; color: #aaa; font-weight: bold; }
-        
-        #nav-map { background: #cfd8dc; border-radius: 8px; overflow: hidden; display: flex; justify-content: center; align-items: center; border: 2px solid var(--dark-grey); }
-        #status-bar { margin-top: 25px; padding: 15px; background: rgba(0,0,0,0.3); text-align: center; border-radius: 8px; font-size: 0.95em; }
-
-        /* Hiệu ứng rung màn hình khi khẩn cấp */
-        @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            80% { transform: translate(-1px, -1px) rotate(1deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
-        }
-        .shake-active { animation: shake 0.4s; }
-    </style>
-</head>
-<body>
-
-<div class="main-container">
-
-    <div class="panel" id="control-panel">
-        <h2>🎮 ĐIỀU KHIỂN AMR</h2>
-
-        <button class="btn-estop" onclick="emergencyStop()">🛑 DỪNG KHẨN CẤP (E-STOP)</button>
-
-        <div class="section-title">1. KHỞI TẠO VỊ TRÍ (BẮT BUỘC)</div>
-        <button class="btn-home-set" onclick="setInitialPose()">📍 XÁC NHẬN VỊ TRÍ BẮT ĐẦU (HOME)</button>
-        
-        <div class="section-title">2. LỆNH ĐIỀU HƯỚNG TỰ ĐỘNG</div>
-        <button class="btn-home-go" onclick="sendGoal(HOME_X, HOME_Y, HOME_YAW)">🔋 TỰ ĐỘNG VỀ TRẠM SẠC</button>
-        <button class="btn-waypoint" onclick="sendGoal(-0.546, -0.512, -1.57)">📦 CHẠY ĐẾN ĐIỂM A (Kệ 1)</button>
-        <button class="btn-waypoint" onclick="sendGoal(0.997, -0.417, 0.0)">📦 CHẠY ĐẾN ĐIỂM B (Kệ 2)</button>
-        <button class="btn-waypoint" onclick="sendGoal(1.010, 0.557, 1.57)">📦 CHẠY ĐẾN ĐIỂM C (Kệ 3)</button>
-        <button class="btn-waypoint" onclick="sendGoal(-0.534, 0.278, 3.14159)">📦 CHẠY ĐẾN ĐIỂM D (Kệ 4)</button>
-        <button class="btn-square" onclick="startSquareTest()">🔄 CHẠY SQUARE TEST (4 VÒNG)</button>
-
-        <div class="section-title">3. ĐIỀU KHIỂN THỦ CÔNG (TELEOP)</div>
-        <div class="teleop-grid">
-            <div></div><button class="btn-nav" onmousedown="startMove(0.15, 0)" onmouseup="stopMove()">▲</button><div></div>
-            <button class="btn-nav" onmousedown="startMove(0, 0.8)" onmouseup="stopMove()">◀</button>
-            <button class="btn-nav" style="background: var(--red)" onclick="stopMove()">■</button>
-            <button class="btn-nav" onmousedown="startMove(0, -0.8)" onmouseup="stopMove()">▶</button>
-            <div></div><button class="btn-nav" onmousedown="startMove(-0.15, 0)" onmouseup="stopMove()">▼</button><div></div>
-        </div>
-        <div id="status-bar">Trạng thái: <span id="st-text" style="color:var(--red); font-weight:bold;">Đang chờ kết nối...</span></div>
-    </div>
-
-    <div class="panel" id="map-panel">
-        <h2>🗺️ BẢN ĐỒ & ĐỊNH VỊ</h2>
-        <div class="section-title">BẢN ĐỒ LƯỚI & ĐIỀU HƯỚNG</div>
-        <div id="nav-map"></div>
-        <div class="section-title" style="margin-top: 25px;">CHÚ THÍCH BẢN ĐỒ</div>
-        <div style="font-size: 0.9em; padding: 10px; background: var(--dark-grey); border-radius: 8px;">
-            <div style="display: flex; justify-content: space-around; margin-bottom: 5px;">
-                <div><span style="color: #000;">⬛</span> Vật cản</div>
-                <div><span style="color: #fff;">⬜</span> Mặt sàn</div>
-                <div><span style="color: #f1c40f;">📍</span> Robot</div>
-            </div>
-            <div style="display: flex; justify-content: space-around;">
-                <div><span style="color: #ff0000;">🔴</span> LiDAR</div>
-                <div><span style="color: #27ae60;">🟢</span> Đường đi</div>
-                <div><span style="color: #9b59b6;">🎯</span> Điểm đến</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="panel" id="tuning-panel">
-        <h2>🛠️ GIÁM SÁT & TUNING</h2>
-
-        <div class="section-title">THÔNG SỐ IMU BNO055</div>
-        <div class="imu-dashboard">
-            <div class="imu-item">🧭 Góc Yaw<span id="yaw-deg" class="imu-value">0.00°</span></div>
-            <div class="imu-item">📐 Theta<span id="yaw-rad" class="imu-value" style="color:#e74c3c;">0.000</span></div>
-        </div>
-
-        <div class="section-title">CHỈNH ĐỊNH PID ĐỘNG CƠ</div>
-        <div class="pid-container">
-            <input type="number" id="input-kp" value="600.0" step="0.1" placeholder="Kp">
-            <input type="number" id="input-ki" value="80.0" step="0.1" placeholder="Ki">
-        </div>
-        <button class="btn-pid" onclick="sendPID()">⚙️ NẠP THÔNG SỐ PID LÊN STM32</button>
-        
-        <div class="section-title">CHẠY THỬ ĐÁP ỨNG (m/s)</div>
-        <div class="test-pid-controls">
-            <input type="number" id="test-speed" class="test-speed-input" value="0.20" step="0.05">
-            <button style="background: #10b981; margin: 0; flex: 1;" onclick="startTestMove()">⬆️ CHẠY</button>
-            <button style="background: #e74c3c; margin: 0; flex: 1;" onclick="stopMove()">🛑 DỪNG</button>
-        </div>
-        
-        <div class="section-title">ĐỒ THỊ ĐÁP ỨNG TỪNG BÁNH</div>
-        <div class="chart-wrapper"><div class="chart-title">L-WHEEL</div><canvas id="chartLeft"></canvas></div>
-        <div class="chart-wrapper"><div class="chart-title">R-WHEEL</div><canvas id="chartRight"></canvas></div>
-    </div>
-
-</div>
-
-<script>
-    // ==========================================================
-    // CẤU HÌNH TỌA ĐỘ TRẠM SẠC
-    // ==========================================================
-    const HOME_X = -1.30484;
-    const HOME_Y = -0.120394;
-    const HOME_YAW = 0.159531;
-    const HOME_QZ = 0.079681; 
-    const HOME_QW = 0.99682;
-    // ==========================================================
-
-    var ip = "192.168.1.16"; 
-    var ros = new ROSLIB.Ros({ url : 'ws://' + ip + ':9090' });
-
-    ros.on('connection', () => { 
-        updateStatus("Đã kết nối Robot - Hãy Khởi tạo vị trí Bắt đầu!", "#27ae60"); 
-        initMap(); 
-    });
-    ros.on('error', () => { updateStatus("Lỗi kết nối đến Robot!", "#e74c3c"); });
-    ros.on('close', () => { updateStatus("Đã ngắt kết nối.", "#e74c3c"); });
-
-    function updateStatus(text, color) {
-        document.getElementById('st-text').innerText = text;
-        document.getElementById('st-text').style.color = color;
-    }
-
-    var initialPoseTopic = new ROSLIB.Topic({ ros: ros, name: '/initialpose', messageType: 'geometry_msgs/PoseWithCovarianceStamped' });
-    function setInitialPose() {
-        var pose = new ROSLIB.Message({
-            header: { frame_id: 'map' },
-            pose: { pose: { position: { x: HOME_X, y: HOME_Y, z: 0.0 }, orientation: { x: 0.0, y: 0.0, z: HOME_QZ, w: HOME_QW } }, covariance: [0.05, 0, 0, 0, 0, 0,  0, 0.05, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0.05] }
-        });
-        initialPoseTopic.publish(pose);
-        updateStatus("📍 Đã nạp tọa độ Bắt Đầu (Home). Hệ thống sẵn sàng!", "#e67e22");
-    }
-
-    // --- ĐIỀU HƯỚNG TỰ ĐỘNG ---
-    var goalTopic = new ROSLIB.Topic({ ros: ros, name: '/goal_pose', messageType: 'geometry_msgs/PoseStamped' });
-    var isNavigating = false;
-    var isSquareTesting = false; var squareLoopCount = 0; var squarePointIndex = 0; const maxSquareLoops = 4;
-    
-    const squareWaypoints = [
-        { x: -0.546, y: -0.512, yaw: -1.57, name: "A", color: "#9b59b6" }, 
-        { x: 0.997, y: -0.417, yaw: 0.0, name: "B", color: "#9b59b6" },
-        { x: 1.010, y: 0.557, yaw: 1.57, name: "C", color: "#9b59b6" }, 
-        { x: -0.534, y: 0.278, yaw: 3.14159, name: "D", color: "#9b59b6" }
-
-    ];
-    const homeWaypoint = { x: HOME_X, y: HOME_Y, yaw: HOME_YAW, color: "#27ae60" };
-
-    function sendGoal(targetX, targetY, targetYaw, isAutoLoop = false) {
-        var qz = Math.sin(targetYaw/2); var qw = Math.cos(targetYaw/2);
-        goalTopic.publish(new ROSLIB.Message({ header: { frame_id: 'map' }, pose: { position: { x: targetX, y: targetY, z: 0.0 }, orientation: { x: 0.0, y: 0.0, z: qz, w: qw } } }));
-        isNavigating = true;
-        if (!isAutoLoop) { isSquareTesting = false; updateStatus("🚀 Đang tự động di chuyển đến mục tiêu...", "#3498db"); }
-    }
-
-    function startSquareTest() {
-        if (isNavigating) { alert("⚠️ Robot đang bận di chuyển."); return; }
-        isSquareTesting = true; squareLoopCount = 0; squarePointIndex = 0;
-        updateStatus("🔄 Square Test (Vòng 1/4) - Đang tiến về Điểm A...", "#e84393");
-        sendGoal(squareWaypoints[0].x, squareWaypoints[0].y, squareWaypoints[0].yaw, true);
-    }
-
-    // --- HÀM DỪNG KHẨN CẤP (E-STOP) BẮT BUỘC ---
-    var cmdVelTopic = new ROSLIB.Topic({ ros: ros, name: '/cmd_vel', messageType: 'geometry_msgs/Twist' });
-    var moveInterval;
-
-    function emergencyStop() {
-        // 1. Tắt các vòng lặp Teleop và chu trình Test
-        isNavigating = false;
-        isSquareTesting = false;
-        if (moveInterval) clearInterval(moveInterval);
-
-        // 2. Ép vận tốc bánh xe về 0 ngay lập tức
-        cmdVelTopic.publish(new ROSLIB.Message({ linear: { x: 0, y: 0, z: 0 }, angular: { x: 0, y: 0, z: 0 } }));
-
-        // 3. Hủy lệnh đang chạy ngầm của Nav2 bằng Action Cancel Service
-        var cancelClient = new ROSLIB.Service({
-            ros: ros,
-            name: '/navigate_to_pose/_action/cancel_goal',
-            serviceType: 'action_msgs/srv/CancelGoal'
-        });
-
-        // Gửi mảng uuid toàn số 0 mang ý nghĩa: "Hủy TẤT CẢ các goal đang chạy"
-        var request = new ROSLIB.ServiceRequest({
-            goal_info: {
-                goal_id: { uuid: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] }, 
-                stamp: { sec: 0, nanosec: 0 }
-            }
-        });
-
-        cancelClient.callService(request, function(result) {
-            console.log("Đã gửi lệnh hủy tới Nav2:", result);
-        });
-
-        // 4. Xóa nét vẽ lộ trình cũ trên bản đồ và Cập nhật giao diện
-        if (pathShape) pathShape.graphics.clear();
-        updateStatus("🚨 E-STOP: ĐÃ HỦY TẤT CẢ LỆNH & DỪNG ROBOT!", "#c0392b");
-
-        // Thêm hiệu ứng rung màn hình cảnh báo
-        document.body.classList.add('shake-active');
-        setTimeout(() => { document.body.classList.remove('shake-active'); }, 400);
-    }
-
-    var navStatusTopic = new ROSLIB.Topic({ ros: ros, name: '/navigate_to_pose/_action/status', messageType: 'action_msgs/msg/GoalStatusArray' });
-    navStatusTopic.subscribe(function(message) {
-        if (!isNavigating && !isSquareTesting) return;
-        if (!message.status_list || message.status_list.length === 0) return;
-        var latest_status = message.status_list[message.status_list.length - 1].status;
-        
-        if (latest_status === 4) { 
-            isNavigating = false;
-            if(pathShape) pathShape.graphics.clear();
-
-            if (isSquareTesting) {
-                squarePointIndex++;
-                if (squarePointIndex >= squareWaypoints.length) { squarePointIndex = 0; squareLoopCount++; }
-                if (squareLoopCount < maxSquareLoops) {
-                    var nextPoint = squareWaypoints[squarePointIndex];
-                    updateStatus(`✅ Đã tới điểm. Vòng ${squareLoopCount + 1}/4 - Tiến về Điểm ${nextPoint.name}...`, "#e84393");
-                    setTimeout(() => { if (isSquareTesting) sendGoal(nextPoint.x, nextPoint.y, nextPoint.yaw, true); }, 1500);
-                } else {
-                    isSquareTesting = false; updateStatus("🎉 HOÀN THÀNH: Chạy xong 4 vòng Square Test!", "#27ae60");
-                }
-            } else { updateStatus("✅ Robot đã đến điểm đích thành công!", "#27ae60"); }
-        } else if (latest_status === 6) { 
-            isNavigating = false; isSquareTesting = false; 
-            if(pathShape) pathShape.graphics.clear();
-            updateStatus("❌ Lỗi: Bị kẹt hoặc không tìm thấy đường đi!", "#e74c3c"); 
-        }
-    });
-
-    // --- TELEOP CƠ BẢN ---
-    function startMove(linear, angular) {
-        isNavigating = false; isSquareTesting = false; if(pathShape) pathShape.graphics.clear();
-        if (moveInterval) clearInterval(moveInterval);
-        updateStatus("🎮 Đang xuất lệnh di chuyển...", "#8e44ad");
-        moveInterval = setInterval(() => { cmdVelTopic.publish(new ROSLIB.Message({ linear: { x: linear, y: 0, z: 0 }, angular: { x: 0, y: 0, z: angular } })); }, 100);
-    }
-    function startTestMove() { var speed = parseFloat(document.getElementById('test-speed').value); if (!isNaN(speed)) startMove(speed, 0); }
-    function stopMove() { clearInterval(moveInterval); isSquareTesting = false; cmdVelTopic.publish(new ROSLIB.Message({ linear: { x: 0, y: 0, z: 0 }, angular: { x: 0, y: 0, z: 0 } })); updateStatus("⏹️ Robot đã dừng.", "#e74c3c"); }
-
-    // --- IMU & PID ---
-    var imuTopic = new ROSLIB.Topic({ ros: ros, name: '/imu/data', messageType: 'sensor_msgs/msg/Imu' });
-    imuTopic.subscribe(function(message) {
-        var yaw_rad = 2 * Math.atan2(message.orientation.z, message.orientation.w);
-        document.getElementById('yaw-deg').innerText = (yaw_rad * 180.0 / Math.PI).toFixed(2) + "°";
-        document.getElementById('yaw-rad').innerText = yaw_rad.toFixed(3);
-    });
-
-    var pidTopic = new ROSLIB.Topic({ ros: ros, name: '/pid_command', messageType: 'std_msgs/msg/String' });
-    function sendPID() {
-        var kp = document.getElementById('input-kp').value; var ki = document.getElementById('input-ki').value;
-        pidTopic.publish(new ROSLIB.Message({ data: "PID," + parseFloat(kp).toFixed(2) + "," + parseFloat(ki).toFixed(2) + "\n" }));
-        updateStatus("⚙️ Đã nạp PID: Kp=" + kp + ", Ki=" + ki, "#f39c12");
-    }
-
-    // --- CHART ĐÁP ỨNG ---
-    const WHEEL_BASE = 0.30; const maxDataPoints = 40;
-    var tar_l = 0.0, tar_r = 0.0, act_l = 0.0, act_r = 0.0;
-    cmdVelTopic.subscribe(function(msg) { let v = msg.linear.x; let w = msg.angular.z; tar_l = v - (w * WHEEL_BASE / 2.0); tar_r = v + (w * WHEEL_BASE / 2.0); });
-    var odomTopic = new ROSLIB.Topic({ ros: ros, name: '/odom', messageType: 'nav_msgs/msg/Odometry' });
-    odomTopic.subscribe(function(msg) { let v = msg.twist.twist.linear.x; let w = msg.twist.twist.angular.z; act_l = v - (w * WHEEL_BASE / 2.0); act_r = v + (w * WHEEL_BASE / 2.0); });
-    const chartOptions = { animation: false, responsive: true, maintainAspectRatio: false, scales: { y: { min: -0.5, max: 0.5, grid: { color: '#34495e' }, ticks: { color: '#ecf0f1', stepSize: 0.2 } }, x: { display: false } }, plugins: { legend: { display: false } }, layout: { padding: { top: 20 } } };
-    var ctxLeft = document.getElementById('chartLeft').getContext('2d'); var chartLeft = new Chart(ctxLeft, { type: 'line', data: { labels: Array(maxDataPoints).fill(''), datasets: [ { borderColor: '#e74c3c', data: Array(maxDataPoints).fill(0), borderWidth: 2, pointRadius: 0, tension: 0.1 }, { borderColor: '#3498db', data: Array(maxDataPoints).fill(0), borderWidth: 2, pointRadius: 0, tension: 0.1 } ] }, options: chartOptions });
-    var ctxRight = document.getElementById('chartRight').getContext('2d'); var chartRight = new Chart(ctxRight, { type: 'line', data: { labels: Array(maxDataPoints).fill(''), datasets: [ { borderColor: '#e74c3c', data: Array(maxDataPoints).fill(0), borderWidth: 2, pointRadius: 0, tension: 0.1 }, { borderColor: '#3498db', data: Array(maxDataPoints).fill(0), borderWidth: 2, pointRadius: 0, tension: 0.1 } ] }, options: chartOptions });
-    setInterval(() => { chartLeft.data.datasets[0].data.shift(); chartLeft.data.datasets[0].data.push(tar_l); chartLeft.data.datasets[1].data.shift(); chartLeft.data.datasets[1].data.push(act_l); chartLeft.update(); chartRight.data.datasets[0].data.shift(); chartRight.data.datasets[0].data.push(tar_r); chartRight.data.datasets[1].data.shift(); chartRight.data.datasets[1].data.push(act_r); chartRight.update(); }, 100);
-
-    // --- BẢN ĐỒ & LIDAR ---
-    var mapViewer, robotMarker, laserScanShape, pathShape, waypointsShape;
-    var currentRobotX = null, currentRobotY = null, currentRobotYaw = null;
-
-    function initMap() {
-        if(mapViewer) return; 
-        mapViewer = new ROS2D.Viewer({ divID : 'nav-map', width : 360, height : 420 });
-        var gridClient = new ROS2D.OccupancyGridClient({ ros : ros, rootObject : mapViewer.scene, continuous: true });
-        gridClient.on('change', function() {
-            mapViewer.scaleToDimensions(gridClient.currentGrid.width, gridClient.currentGrid.height);
-            mapViewer.shift(gridClient.currentGrid.pose.position.x, gridClient.currentGrid.pose.position.y);
-        });
-
-        waypointsShape = new createjs.Container();
-        let allPoints = [...squareWaypoints, homeWaypoint];
-        allPoints.forEach(wp => {
-            var marker = new createjs.Shape();
-            marker.graphics.beginFill(wp.color).drawCircle(0, 0, 0.08);
-            marker.graphics.beginFill("#ffffff").drawCircle(0, 0, 0.03);
-            marker.x = wp.x; marker.y = -wp.y; 
-            waypointsShape.addChild(marker);
-        });
-        mapViewer.scene.addChild(waypointsShape);
-
-        pathShape = new createjs.Shape();
-        mapViewer.scene.addChild(pathShape);
-        var planTopic = new ROSLIB.Topic({ ros: ros, name: '/plan', messageType: 'nav_msgs/msg/Path' });
-        planTopic.subscribe(function(message) {
-            pathShape.graphics.clear();
-            if (message.poses.length > 0) {
-                pathShape.graphics.setStrokeStyle(0.04, "round", "round").beginStroke("#27ae60");
-                pathShape.graphics.moveTo(message.poses[0].pose.position.x, -message.poses[0].pose.position.y);
-                for(var i = 1; i < message.poses.length; i++){
-                    pathShape.graphics.lineTo(message.poses[i].pose.position.x, -message.poses[i].pose.position.y);
-                }
-                pathShape.graphics.endStroke();
-            }
-        });
-
-        laserScanShape = new createjs.Shape();
-        mapViewer.scene.addChild(laserScanShape);
-
-        robotMarker = new createjs.Container();
-        var base = new createjs.Shape(); base.graphics.beginFill("#34495e").drawRoundRect(-0.14, -0.15, 0.28, 0.30, 0.02);
-        var wheelL = new createjs.Shape(); wheelL.graphics.beginFill("#000000").drawRect(-0.06, -0.18, 0.12, 0.04);
-        var wheelR = new createjs.Shape(); wheelR.graphics.beginFill("#000000").drawRect(-0.06, 0.14, 0.12, 0.04);
-        var lidar = new createjs.Shape(); lidar.graphics.beginFill("#111111").drawCircle(-0.04, 0, 0.045); lidar.graphics.beginFill("#f1c40f").drawCircle(-0.04, 0, 0.015);
-        var dirArrow = new createjs.Shape(); dirArrow.graphics.beginFill("#f1c40f").moveTo(0.04, -0.05).lineTo(0.16, 0).lineTo(0.04, 0.05).closePath();
-        robotMarker.addChild(base, wheelL, wheelR, lidar, dirArrow);
-        robotMarker.visible = false; 
-        mapViewer.scene.addChild(robotMarker);
-
-        var poseTopic = new ROSLIB.Topic({ ros: ros, name: '/amcl_pose', messageType: 'geometry_msgs/PoseWithCovarianceStamped' });
-        poseTopic.subscribe(function(message) {
-            currentRobotX = message.pose.pose.position.x;
-            currentRobotY = message.pose.pose.position.y; 
-            currentRobotYaw = 2 * Math.atan2(message.pose.pose.orientation.z, message.pose.pose.orientation.w);
-            robotMarker.visible = true;
-            robotMarker.x = currentRobotX; robotMarker.y = -currentRobotY; 
-            robotMarker.rotation = -currentRobotYaw * (180.0 / Math.PI); 
-        });
-
-        var scanTopic = new ROSLIB.Topic({ ros: ros, name: '/scan', messageType: 'sensor_msgs/msg/LaserScan' });
-        scanTopic.subscribe(function(message) {
-            if (currentRobotX === null) return; 
-            laserScanShape.graphics.clear();
-            laserScanShape.graphics.beginFill("#e74c3c"); 
-            for (var i = 0; i < message.ranges.length; i++) {
-                var range = message.ranges[i];
-                if (range >= message.range_min && range <= message.range_max) {
-                    var global_angle = currentRobotYaw + message.angle_min + i * message.angle_increment;
-                    laserScanShape.graphics.drawRect(currentRobotX + range * Math.cos(global_angle) - 0.025, -(currentRobotY + range * Math.sin(global_angle)) - 0.025, 0.05, 0.05);
-                }
-            }
-        });
-    }
-</script>
-</body>
-</html> 

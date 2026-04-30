@@ -9,10 +9,13 @@ setup.py
 ../../build/agv_controller/agv_controller.egg-info/top_level.txt
 ../../build/agv_controller/agv_controller.egg-info/zip-safe
 agv_controller/__init__.py
+agv_controller/camera_stream.py
 agv_controller/diff_drive_controller.py
 agv_controller/draw_and_follow.py
 agv_controller/linear_test.py
-agv_controller/qr_scanner_node.py
+agv_controller/my_qr_reader.py
+agv_controller/pi_bridge_agent.py
+agv_controller/slam_manager_node.py
 agv_controller/square_test.py
 config/ekf.yaml
 config/my_nav2_params.yaml
